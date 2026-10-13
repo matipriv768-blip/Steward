@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from ilustraciones import hero, circuit, network
+from ilustraciones import network
 from textos import T, GLYPHS, REPO, GIST
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'docs'
@@ -14,6 +14,14 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else 'docs'
 def t(key, tag='span', cls=None, attrs=''):
     c = ' class="%s"' % cls if cls else ''
     return '<%s%s data-i18n="%s"%s>%s</%s>' % (tag, c, key, attrs, html.escape(T[key][0]), tag)
+
+
+def photo(name, alt, cap=None, cls='photo', eager=False, sizes='(max-width:1248px) 100vw, 1200px'):
+    img = ('<img src="assets/fotos/{n}-1376.jpg" srcset="assets/fotos/{n}-800.jpg 800w, assets/fotos/{n}-1376.jpg 1376w" '
+           'sizes="{sz}" alt="{a}" width="1376" height="768"{l}>').format(n=name, a=html.escape(alt), sz=sizes,
+                                                                         l='' if eager else ' loading="lazy" decoding="async"')
+    c = '<figcaption>%s</figcaption>' % t(cap) if cap else ''
+    return '<figure class="%s">%s%s</figure>' % (cls, img, c)
 
 
 FEATURES = ''.join('''
@@ -99,7 +107,9 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:
 
 /* portada */
 .hero{position:relative;height:100vh;min-height:640px;overflow:hidden;background:#151a33}
-.hero-art{position:absolute;inset:0;width:100%;height:100%}
+.hero-photo{position:absolute;inset:0;margin:0}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:60% 55%}
+.hero-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(21,26,51,.28) 0,rgba(21,26,51,0) 22%,rgba(21,26,51,0) 60%,rgba(21,26,51,.35) 100%)}
 .hero-card{position:absolute;left:clamp(16px,4vw,56px);bottom:clamp(16px,6vh,64px);max-width:600px;padding:32px;border-radius:24px;
   background:rgba(254,255,252,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.6)}
 .hero-card h1{margin:4px 0 16px}
@@ -117,6 +127,14 @@ section{padding:96px 0}
 .feature-n{display:block;font-family:var(--serif);font-size:27px;letter-spacing:-.04em;color:var(--fog);line-height:1.2;margin-bottom:12px}
 .feature h3{margin-bottom:8px}
 .feature p{color:var(--ash);font-size:15px}
+
+/* fotos */
+.photo{position:relative;margin:56px 0 0;border-radius:24px;overflow:hidden;background:#2a2b33;box-shadow:rgba(0,0,0,.06) 0 2px 2px 0,rgba(0,0,0,.04) 0 0 0 5px}
+.photo img{width:100%;height:auto;aspect-ratio:16/7;object-fit:cover}
+.photo figcaption{position:absolute;left:16px;bottom:16px;max-width:min(520px,calc(100% - 32px));padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.35;color:var(--graphite);
+  background:rgba(254,255,252,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.6)}
+.photo.flag img{object-position:50% 40%}
+.photo.contact img{object-position:50% 55%}
 
 /* pantalla */
 .screen-head{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:end}
@@ -144,7 +162,11 @@ section{padding:96px 0}
   box-shadow:rgba(0,0,0,.06) 0 2px 2px 0,rgba(0,0,0,.04) 0 0 0 5px}
 .blue h2{color:#fff;max-width:620px;position:relative}
 .blue p{max-width:560px;margin-top:20px;font-size:17px;color:#eef7fb;position:relative}
-.circuit-art{position:absolute;right:-60px;bottom:-30px;width:min(760px,80%);opacity:.9;pointer-events:none}
+.blue{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;align-items:center}
+.blue-text{grid-column:1 / span 6}
+.blue .photo{grid-column:7 / span 6;margin:0;border-radius:16px;box-shadow:rgba(0,0,0,.18) 0 6px 24px 0}
+.blue .photo img{aspect-ratio:4/3;object-position:62% 50%}
+.blue .photo figcaption{font-size:13px}
 .net{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:center;margin-top:80px}
 .net > div:first-child{grid-column:1 / span 5}
 .net h3{font-family:var(--serif);font-size:27px;font-weight:400;letter-spacing:-.04em;line-height:1.3;margin-bottom:12px}
@@ -182,16 +204,21 @@ section{padding:96px 0}
 .faq[open] summary::after{content:"–"}
 .faq p{margin-top:10px;color:var(--ash);max-width:760px}
 
-footer{background:var(--paper);border-top:1px solid var(--mist);padding:80px 0 48px}
+.closing{position:relative;border-radius:24px;overflow:hidden;min-height:560px;display:flex;align-items:flex-start;background:#3a4044}
+.closing > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 75%}
+.closing-card{position:relative;margin:clamp(16px,4vw,40px);max-width:560px;padding:28px 32px 30px;border-radius:20px;
+  background:rgba(254,255,252,.8);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.6)}
+.closing-card h2{font-size:clamp(28px,3.4vw,40px);margin-bottom:22px}
+footer{background:var(--paper);border-top:1px solid var(--mist);padding:56px 0 48px}
 footer h2{max-width:760px}
-.foot-links{display:flex;flex-wrap:wrap;gap:20px;margin:32px 0 40px}
+.foot-links{display:flex;flex-wrap:wrap;gap:20px;margin:0 0 28px}
 .foot-links a{text-decoration:none;font-size:15px;font-weight:500;color:var(--twilight)}
 .foot-links a:hover{text-decoration:underline}
 .credit{font-size:13px;color:var(--ash);max-width:820px;line-height:1.5}
 
 @media (max-width:980px){
   .nav a.link{display:none}
-  .intro h2,.intro .lead,.screen-head > div:first-child,.screen-head .lead,.net > div:first-child,.diagram,.server > div:first-child,.server .code{grid-column:1 / -1}
+  .blue-text,.blue .photo,.intro h2,.intro .lead,.screen-head > div:first-child,.screen-head .lead,.net > div:first-child,.diagram,.server > div:first-child,.server .code{grid-column:1 / -1}
   .features{grid-template-columns:repeat(2,1fr)}
   .steps{grid-template-columns:repeat(2,1fr)}
   .glyphs{grid-template-columns:repeat(4,1fr)}
@@ -201,14 +228,25 @@ footer h2{max-width:760px}
   .wrap{padding:0 16px}
   .nav{padding-left:12px}
   .nav .btn{display:none}
-  .hero{min-height:700px}
-  .hero-card{left:16px;right:16px;padding:24px;bottom:16px}
+  .hero-card{padding:24px}
   .features,.steps{grid-template-columns:1fr}
   .glyphs{grid-template-columns:repeat(2,1fr)}
   .keys li{grid-template-columns:1fr;gap:2px}
   .viewer-bar{flex-direction:column}
   .viewer img{aspect-ratio:4/3;object-position:50% 0}
-  .circuit-art{position:relative;right:auto;bottom:auto;width:100%;margin:24px 0 -8px}
+  .photo{margin-top:40px;border-radius:16px}
+  .photo img{aspect-ratio:4/3}
+  .photo figcaption{position:static;max-width:none;border-radius:0;border:0;background:var(--linen);padding:12px 14px}
+  .blue .photo figcaption{background:#fefffc}
+  .hero{height:auto;min-height:0;display:flex;flex-direction:column;background:var(--parchment)}
+  .hero-photo{position:relative;height:62vh;min-height:420px}
+  .hero-photo img{object-position:80% 50%}
+  .hero-card{position:relative;left:auto;right:auto;bottom:auto;margin:-96px 16px 0;background:rgba(254,255,252,.86)}
+  .blue{display:block}
+  .blue .photo{margin-top:28px}
+  .closing{min-height:620px;border-radius:16px}
+  .closing > img{object-position:62% 50%}
+  .closing-card{padding:22px}
 }
 """
 
@@ -273,7 +311,8 @@ PAGE = f'''<!doctype html>
 <meta name="description" content="{html.escape(T['meta'][0])}">
 <meta property="og:title" content="Steward">
 <meta property="og:description" content="{html.escape(T['meta'][0])}">
-<meta property="og:image" content="assets/og.png">
+<meta property="og:image" content="https://matipriv768-blip.github.io/Steward/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#151a33">
 <link rel="icon" href="assets/icono.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -294,7 +333,7 @@ PAGE = f'''<!doctype html>
 </nav>
 
 <header class="hero" id="top">
-  {hero()}
+  {photo('atardecer', 'Tres autos GT3 suben por Raidillon, en Spa, al atardecer', cls='hero-photo', eager=True, sizes='100vw')}
   <div class="hero-card">
     {t('hero_eyebrow', 'span', 'eyebrow')}
     {t('hero_h1', 'h1')}
@@ -313,6 +352,7 @@ PAGE = f'''<!doctype html>
     <div class="intro">{t('intro_h2', 'h2')}{t('intro_p', 'p', 'lead')}</div>
     <div class="features">{FEATURES}
     </div>
+    {photo('lado_a_lado', 'Dos autos GT3 lado a lado en una curva rodeada de bosque', 'ph_contact', 'photo contact')}
   </div>
 </section>
 
@@ -330,6 +370,7 @@ PAGE = f'''<!doctype html>
 <section id="senales">
   <div class="wrap">
     {t('flags_eyebrow', 'span', 'eyebrow')}{t('flags_h2', 'h2')}
+    {photo('banderillero', 'Un banderillero agita la bandera amarilla de noche bajo la lluvia mientras pasa un GT3', 'ph_flag', 'photo flag')}
     <div class="glyphs">{GLYPH_GRID}
     </div>
   </div>
@@ -337,7 +378,7 @@ PAGE = f'''<!doctype html>
 
 <section style="padding-top:0">
   <div class="wrap">
-    <div class="blue">{circuit()}{t('blue_h2', 'h2')}{t('blue_p', 'p')}</div>
+    <div class="blue"><div class="blue-text">{t('blue_h2', 'h2')}{t('blue_p', 'p')}</div>{photo('pits', 'Un GT3 entra al pit lane de Spa al anochecer mientras esperan los mecánicos', 'ph_pits', sizes='(max-width:980px) 100vw, 560px')}</div>
     <div class="net">
       <div>{t('net_h3', 'h3')}{t('net_p', 'p')}</div>
       <div class="diagram">{network()}</div>
@@ -373,11 +414,22 @@ PAGE = f'''<!doctype html>
     </div>
   </div>
 </section>
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="closing">
+      <img src="assets/fotos/largada-1376.jpg" srcset="assets/fotos/largada-800.jpg 800w, assets/fotos/largada-1376.jpg 1376w" sizes="100vw" alt="Salida lanzada en dos filas de autos GT3 con neblina al amanecer, en Spa" width="1376" height="768" loading="lazy" decoding="async">
+      <div class="closing-card">
+        {t('close_eyebrow', 'span', 'eyebrow')}
+        {t('foot_h2', 'h2')}
+        <a class="btn primary" href="{REPO}/releases/latest">{t('hero_cta')}<span class="arrow">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer>
   <div class="wrap">
-    {t('foot_h2', 'h2')}
     <div class="foot-links">
       <a href="{REPO}">GitHub</a>
       <a href="{REPO}/releases">{t('foot_releases')}</a>

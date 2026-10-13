@@ -104,10 +104,14 @@ T = {
  'q5': ('¿Puedo revisar el código?', 'Can I read the code?'),
  'a5': ('Sí. Todo está en GitHub con licencia MIT, y las pruebas corren fuera del juego con un simulador de la API de Custom Shaders Patch.',
         'Yes. Everything is on GitHub under the MIT licence, and the tests run outside the game with a simulator of the Custom Shaders Patch API.'),
+ 'ph_contact': ('Lado a lado es incidente de carrera. Quien alcanza por detrás es responsable.', 'Side by side is a racing incident. The car hitting from behind is at fault.'),
+ 'ph_flag': ('Con amarilla no se adelanta hasta dejar atrás el peligro, llueva o no.', 'Under yellow there is no overtaking until you are past the danger, rain or shine.'),
+ 'ph_pits': ('Drive-through y stop and go se cumplen en el pit lane, dentro del plazo en vueltas.', 'Drive-throughs and stop and go penalties are served in the pit lane, within the lap deadline.'),
+ 'close_eyebrow': ('Salida lanzada en dos filas', 'Two-wide rolling start'),
  'foot_h2': ('Hecho para correr limpio, vuelta tras vuelta.', 'Made for clean racing, lap after lap.'),
  'foot_releases': ('Versiones', 'Releases'), 'foot_changes': ('Registro de cambios', 'Changelog'), 'foot_license': ('Licencia MIT', 'MIT licence'),
- 'foot_credit': ('Creado por Matías. Código, íconos e ilustraciones hechos con asistencia de Claude, de Anthropic. Letras Fraunces e Inter, con licencia SIL Open Font. Steward es un proyecto independiente, sin relación con Kunos Simulazioni, Real Penalty ni los autores de Custom Shaders Patch o Content Manager.',
-                 'Made by Matías. Code, icons and illustrations made with assistance from Claude, by Anthropic. Fraunces and Inter typefaces, under the SIL Open Font License. Steward is an independent project, not affiliated with Kunos Simulazioni, Real Penalty or the authors of Custom Shaders Patch or Content Manager.'),
+ 'foot_credit': ('Creado por Matías. Código, íconos e ilustraciones hechos con asistencia de Claude, de Anthropic. Fotografías generadas con Gemini, de Google; no son carreras reales. Letras Fraunces e Inter, con licencia SIL Open Font. Steward es un proyecto independiente, sin relación con Kunos Simulazioni, Real Penalty ni los autores de Custom Shaders Patch o Content Manager.',
+                 'Made by Matías. Code, icons and illustrations made with assistance from Claude, by Anthropic. Photos generated with Gemini, by Google; they do not show real races. Fraunces and Inter typefaces, under the SIL Open Font License. Steward is an independent project, not affiliated with Kunos Simulazioni, Real Penalty or the authors of Custom Shaders Patch or Content Manager.'),
 }
 
 GLYPHS = [('bandera_verde', 'g_green'), ('bandera_amarilla', 'g_yellow'), ('bandera_amarilla_total', 'g_fcy'), ('bandera_roja', 'g_red'),
