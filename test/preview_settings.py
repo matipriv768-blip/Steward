@@ -9,7 +9,7 @@ import sys
 from lupa import luajit21 as lj
 from PIL import Image, ImageDraw, ImageFont
 
-APP = 'pkg/apps/lua/Comisario/Comisario.lua'
+APP = 'apps/lua/Steward/Steward.lua'
 REG = '/usr/share/fonts/opentype/inter/Inter-Regular.otf'
 BOLD = '/usr/share/fonts/opentype/inter/Inter-Bold.otf'
 SS = 2

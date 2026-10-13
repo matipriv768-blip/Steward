@@ -17,7 +17,7 @@ def scenario(name, body, pre=''):
       T.versionMsgs = {}
       local realSet = ac.setMessage
       ac.setMessage = function (a, b)
-        if tostring(a):find('^COMISARIO SERVIDOR') or tostring(a):find('^COMISARIO SERVER') then T.versionMsgs[#T.versionMsgs + 1] = tostring(a) .. ' | ' .. tostring(b) return end
+        if tostring(a):find('^STEWARD SERVIDOR') or tostring(a):find('^STEWARD SERVER') then T.versionMsgs[#T.versionMsgs + 1] = tostring(a) .. ' | ' .. tostring(b) return end
         return realSet(a, b)
       end
     ''')
@@ -74,7 +74,7 @@ scenario('con rollingStart = 0 el script no hace nada y avisa a la app que la sa
   return #T.forcedCuts == 0 and #T.messages == 0 and LINK.srvMode == 1
 ''', pre='SCRIPT_CFG = { rollingStart = 0, lockStart = 1, formationSpeed = 100 }')
 
-scenario('la velocidad de la app Comisario manda sobre la del servidor mientras la app responda', """
+scenario('la velocidad de la app Steward manda sobre la del servidor mientras la app responda', """
   LINK.appSpeed = 70
   place(0, 0, 80)
   T.sim.isSessionStarted = false                        -- la app ya estaba corriendo antes de la largada
@@ -193,7 +193,7 @@ scenario('requireApp = 1: sin la app activa, pasados 30 s el auto no pasa de 60 
   run(20)
   local grace = #T.forcedCuts == 0
   run(12)
-  local capped = #T.forcedCuts > 30 and lastMsg():find('COMISARIO OBLIGATORIO') ~= nil
+  local capped = #T.forcedCuts > 30 and lastMsg():find('STEWARD OBLIGATORIO') ~= nil
   place(0, 0, 55); local n = #T.forcedCuts; run(1)
   local slowOk = #T.forcedCuts == n
   LINK.appOn = 1; place(0, 0, 150)
@@ -361,7 +361,7 @@ scenario('carrera reiniciada: en la nueva cuenta regresiva el auto vuelve a ir a
 scenario('al cargar, el script avisa una sola vez que version es', """
   T.sim.raceSessionType = ac.SessionType.Practice
   place(0, 0, 50); run(8)
-  local shown = #T.versionMsgs == 1 and T.versionMsgs[1]:find('COMISARIO SERVIDOR 1.13', 1, true) ~= nil
+  local shown = #T.versionMsgs == 1 and T.versionMsgs[1]:find('STEWARD SERVIDOR 1.14', 1, true) ~= nil
   T.sim.raceSessionType = ac.SessionType.Race; run(8)
   return shown and #T.versionMsgs == 1
 """)
@@ -384,7 +384,7 @@ scenario("language = 'en': los mensajes del script salen en ingles", """
 scenario("language = 'en': el aviso de version tambien", """
   T.sim.raceSessionType = ac.SessionType.Practice
   place(0, 0, 50); run(8)
-  return #T.versionMsgs == 1 and T.versionMsgs[1] == 'COMISARIO SERVER 1.13 | Server script loaded'
+  return #T.versionMsgs == 1 and T.versionMsgs[1] == 'STEWARD SERVER 1.14 | Server script loaded'
 """, pre="SCRIPT_CFG = { language = 'EN' }")
 
 scenario('fila doble (por defecto): el 1 y el 2 lado a lado (el 2 escalonado 4 m), el 3 en la fila siguiente', """

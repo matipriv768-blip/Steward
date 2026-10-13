@@ -1,8 +1,8 @@
 --[[
-  COMISARIO SERVIDOR 1.13  -  script online para Assetto Corsa (Custom Shaders Patch)
+  STEWARD SERVIDOR 1.14  -  script online (antes Comisario servidor) para Assetto Corsa (Custom Shaders Patch)
 
   El servidor le envia este archivo a cada piloto al conectarse. No hay que instalarlo.
-  Impone la salida lanzada a todos, tengan o no la app Comisario:
+  Impone la salida lanzada a todos, tengan o no la app Steward:
     - La primera vuelta de la carrera es de formacion.
     - Durante la formacion el auto no puede pasar de la velocidad fijada: al superarla,
       el script suelta el acelerador por el piloto, igual que un limitador de pits.
@@ -10,7 +10,7 @@
       desaparece, para que el auto ya este libre al cruzarla.
 
   Tambien hace cumplir la amarilla total y la bandera roja que decreta el director de carrera
-  desde la app Comisario: mientras duren, el auto no puede pasar de la velocidad que el fije.
+  desde la app Steward: mientras duren, el auto no puede pasar de la velocidad que el fije.
 
   Salida lanzada corta (startMeters):
     - En vez de dar una vuelta completa de formacion, cada auto es llevado a la ultima parte
@@ -23,19 +23,19 @@
       de la IA, sin pisar el piano. Si no cabe, va en una sola fila.
 
   Tipo de salida:
-    - Si el piloto tiene la app Comisario, vale el tipo de salida elegido en la app
+    - Si el piloto tiene la app Steward, vale el tipo de salida elegido en la app
       (el del director de carrera, si hay uno).
     - Si no tiene la app, vale rollingStart de aqui abajo.
     - Con lockStart = 1 manda siempre rollingStart, diga lo que diga la app.
 
   Administrador (adminPass):
-    - Si el servidor tiene una clave, solo el piloto que la escriba en su app Comisario puede fijar
+    - Si el servidor tiene una clave, solo el piloto que la escriba en su app Steward puede fijar
       el reglamento, el tipo de salida y las banderas. Los demas no pueden cambiarlos.
     - Con requireApp = 1, quien no tenga la app activa queda limitado a 60 km/h.
     - Un piloto descalificado por la app es enviado a pits y su auto queda sin controles hasta el final.
 
   Velocidad de la formacion:
-    - Si el piloto tiene la app Comisario, vale la velocidad puesta en la app
+    - Si el piloto tiene la app Steward, vale la velocidad puesta en la app
       (la del director de carrera, si hay uno).
     - Si no tiene la app, vale formationSpeed de aqui abajo.
 
@@ -49,7 +49,7 @@
     greenMeters = 100        ; la verde sale cuando al lider le faltan estos metros para la meta (0 = en la meta)
     startMeters = 0          ; salida lanzada corta: metros antes de la meta donde parte el primero (0 = vuelta completa)
     adminPass = ''           ; clave de administrador (vacia = sin administrador: manda quien se marque director)
-    requireApp = 0           ; 1 = sin la app Comisario activa, el auto no pasa de 60 km/h
+    requireApp = 0           ; 1 = sin la app Steward activa, el auto no pasa de 60 km/h
     language = 'es'          ; idioma de los mensajes de este script: 'es' = espanol, 'en' = ingles
     twoWide = 1              ; salida corta en dos filas (1 y 2 lado a lado, 3 y 4 detras...); 0 = una sola fila
 
@@ -86,7 +86,7 @@ end
 local adminPass = tostring(settings.adminPass or '')
 local auth = adminPass ~= '' and hashKey(adminPass) or 0
 
--- Enlace con la app Comisario del mismo piloto. No esta documentado en que "espacio" quedan
+-- Enlace con la app Steward del mismo piloto. No esta documentado en que "espacio" quedan
 -- los datos de un script de servidor, asi que se prueban los tres posibles y se usa el que responda.
 local links = {}
 do
@@ -113,7 +113,7 @@ local tick = 0
 local now = 0
 local midLap = {}      -- autos que ya pasaron por la mitad de la vuelta de formacion
 local controlLimit = 0 -- amarilla total, bandera roja o descalificacion decretada en la app: velocidad maxima (0 = no hay)
-local appActive = false -- la app Comisario del piloto esta abierta y activa
+local appActive = false -- la app Steward del piloto esta abierta y activa
 local nagAt = -100
 local appDq = false     -- la app descalifico a este piloto
 local inputLocked = false -- los controles del auto estan bloqueados por descalificacion
@@ -130,10 +130,10 @@ local gridPos, gridDir = nil, nil  -- donde estaba en la grilla, por si se cambi
 
 -- Mensajes en ingles (language = 'en'). La clave es el texto en espanol; los %s son huecos para numeros.
 local EN = {
-  ['COMISARIO SERVIDOR %s'] = 'COMISARIO SERVER %s',
+  ['STEWARD SERVIDOR %s'] = 'STEWARD SERVER %s',
   ['Script del servidor cargado'] = 'Server script loaded',
-  ['COMISARIO OBLIGATORIO'] = 'COMISARIO REQUIRED',
-  ['Abre y activa la app Comisario: sin ella no pasas de %s km/h'] = 'Open and enable the Comisario app: without it you cannot go over %s km/h',
+  ['STEWARD OBLIGATORIO'] = 'STEWARD REQUIRED',
+  ['Abre y activa la app Steward: sin ella no pasas de %s km/h'] = 'Open and enable the Steward app: without it you cannot go over %s km/h',
   ['DESCALIFICADO'] = 'DISQUALIFIED',
   ['Fuiste enviado a pits. No puedes volver a la carrera'] = 'You were sent to the pits. You cannot rejoin the race',
   ['SALIDA LANZADA'] = 'ROLLING START',
@@ -361,7 +361,7 @@ local function releasePre()
   end
 end
 
-local SCRIPT_VERSION = '1.13'
+local SCRIPT_VERSION = '1.14'
 local versionShown = false
 
 function script.update(dt)
@@ -372,10 +372,10 @@ function script.update(dt)
   -- al entrar al servidor se avisa que version del script esta cargada (sirve para comprobar el enlace del gist)
   if not versionShown and now > 3 then
     versionShown = true
-    pcall(function () ac.log('Comisario servidor ' .. SCRIPT_VERSION .. ' cargado') end)
+    pcall(function () ac.log('Steward servidor ' .. SCRIPT_VERSION .. ' cargado') end)
     -- en plena carrera no se muestra, para no tapar los avisos de la largada
     if sim.raceSessionType ~= ac.SessionType.Race then
-      show(tr('COMISARIO SERVIDOR %s', SCRIPT_VERSION), tr('Script del servidor cargado'))
+      show(tr('STEWARD SERVIDOR %s', SCRIPT_VERSION), tr('Script del servidor cargado'))
     end
   end
 
@@ -388,7 +388,7 @@ function script.update(dt)
     cap(car, NO_APP_SPEED)
     if now - nagAt > 20 then
       nagAt = now
-      show(tr('COMISARIO OBLIGATORIO'), tr('Abre y activa la app Comisario: sin ella no pasas de %s km/h', NO_APP_SPEED))
+      show(tr('STEWARD OBLIGATORIO'), tr('Abre y activa la app Steward: sin ella no pasas de %s km/h', NO_APP_SPEED))
     end
   end
 

@@ -1,8 +1,8 @@
-COMISARIO SERVIDOR 1.13
+STEWARD SERVIDOR 1.14
 Script online para el servidor (opcional)
 
 El tutorial paso a paso, esta en la pagina del
-proyecto: https://github.com/matipriv768-blip/Comisario (caso 3).
+proyecto: https://github.com/matipriv768-blip/Steward (caso 3).
 
 QUE HACE
 El servidor le envia este script a cada piloto al conectarse: nadie tiene que
@@ -16,7 +16,7 @@ instalarlo. Con el script puesto:
 - Manda a pits al piloto descalificado por la app, con el auto sin controles.
 - Guarda la clave de administrador.
 Cada piloto necesita Custom Shaders Patch y, para casi todo lo anterior, la app
-Comisario instalada.
+Steward instalada.
 
 RESUMEN: LO QUE HAY QUE HACER CADA VEZ QUE ARMAS UN SERVIDOR
 El bloque del PASO 2 va en las opciones de cada preset de servidor de Content
@@ -44,9 +44,9 @@ A) Usar tu propio gist (probado):
 
 B) Usar el archivo de este repositorio (mas rapido, todavia sin probar en un
    servidor real):
-   https://raw.githubusercontent.com/matipriv768-blip/Comisario/main/servidor/comisario_servidor.lua
+   https://raw.githubusercontent.com/matipriv768-blip/Steward/main/servidor/comisario_servidor.lua
    Entrega siempre la ultima version publicada aqui. Si al entrar al servidor no
-   aparece el mensaje "COMISARIO SERVIDOR", usa la forma A.
+   aparece el mensaje "STEWARD SERVIDOR", usa la forma A.
 
 PASO 2: PEGAR EL BLOQUE EN EL SERVIDOR (CONTENT MANAGER)
 1. En Content Manager entra a Server y abre tu preset.
@@ -66,7 +66,7 @@ adminPass = 'tuclave'
 requireApp = 1
 
 4. Guarda el preset y arranca (o reinicia) el servidor.
-5. En tu app Comisario: engranaje > Inicio > Clave de administrador, escribe la
+5. En tu app Steward: engranaje > Inicio > Clave de administrador, escribe la
    misma clave. Desde ese momento tu reglamento, tu tipo de salida y tus
    banderas valen para todos. No le des la clave a los demas pilotos.
 
@@ -89,7 +89,7 @@ startMeters = 500     salida lanzada corta: el primero parte a estos metros de
                       a la carrera: el juego la cuenta).
 adminPass = 'clave'   clave de administrador. Entre comillas simples, sin tildes
                       ni espacios.
-requireApp = 1        quien entre sin la app Comisario activa no pasa de 60 km/h
+requireApp = 1        quien entre sin la app Steward activa no pasa de 60 km/h
                       (se dan 30 segundos al entrar para que cargue).
 twoWide = 1           salida corta en dos filas: 1 y 2 lado a lado (el 2 unos
                       metros detras), 3 y 4 en la fila siguiente, respetando el
@@ -102,7 +102,7 @@ language = 'en'       opcional: los mensajes de este script salen en ingles.
 
 AJUSTES RECOMENDADOS DEL SERVIDOR (pestana RULES del preset)
 - Allowed tyres out: 4. Asi el juego no pone su propia sancion por limites de
-  pista encima de la de Comisario.
+  pista encima de la de Steward.
 - Jump start (salida en falso): car locked (auto bloqueado hasta la largada).
   Con la salida lanzada corta los autos se mueven a la fila durante la cuenta
   regresiva, y con las otras opciones no esta probado.
@@ -114,10 +114,10 @@ codigo largo, no hay que tocar Content Manager; solo reinicia el servidor.
 Con la forma B: se actualiza solo cuando se publica una version nueva aqui.
 
 COMO SABER SI FUNCIONA
-- Al entrar al servidor (en practica) aparece arriba "COMISARIO SERVIDOR 1.13".
+- Al entrar al servidor (en practica) aparece arriba "STEWARD SERVIDOR 1.14".
   Si no aparece o sale un numero menor, el servidor esta entregando un script
   antiguo: revisa la direccion de SCRIPT.
-- En la ventana Comisario, el panel dice "enlazado con el script del servidor".
+- En la ventana Steward, el panel dice "enlazado con el script del servidor".
 - Al largar aparece "SALIDA LANZADA" y, si aceleras a fondo, el auto no pasa de
   la velocidad fijada.
 

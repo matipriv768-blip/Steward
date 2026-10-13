@@ -1,20 +1,25 @@
-<p align="center"><img src="docs/logo.png" width="220" alt="Comisario"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo_oscuro.png">
+    <img src="docs/logo_claro.png" width="360" alt="Steward">
+  </picture>
+</p>
 
-# Comisario
+# Steward
 
-A race steward for **Assetto Corsa**. It watches track limits, contact, flags and penalties, offline and online, in the style of Real Penalty. Free and open source.
+A race steward for **Assetto Corsa**. It watches track limits, contact, flags and penalties, offline and online, in the style of Real Penalty. Free and open source. **Formerly called Comisario.**
 
-**[Versión en español](README.md)**
+**[Website](https://matipriv768-blip.github.io/Steward/)** · **[Versión en español](README.md)**
 
-![On-screen indicators](docs/interfaz.png)
+![On-screen indicators](docs/interfaz_en.png)
 
 ## Contents
 
 1. [What you need](#what-you-need)
 2. [Install the app](#install-the-app) (everyone does this)
 3. [Racing offline](#case-1-racing-offline)
-4. [Joining a server that uses Comisario](#case-2-joining-a-server-that-uses-comisario)
-5. [Creating your own server with Comisario](#case-3-creating-your-own-server-with-comisario)
+4. [Joining a server that uses Steward](#case-2-joining-a-server-that-uses-steward)
+5. [Creating your own server with Steward](#case-3-creating-your-own-server-with-steward)
 6. [App settings](#app-settings)
 7. [FAQ](#faq)
 8. [What it does](#what-it-does) and [known limits](#project-status-and-known-limits)
@@ -33,15 +38,17 @@ A race steward for **Assetto Corsa**. It watches track limits, contact, flags an
 
 Every driver does this, once.
 
-1. Download the **`Comisario-x.x.x.zip`** file of the latest version from [Releases](https://github.com/matipriv768-blip/Comisario/releases/latest). Do not unzip it.
+1. Download the **`Steward-x.x.x.zip`** file of the latest version from [Releases](https://github.com/matipriv768-blip/Steward/releases/latest). Do not unzip it.
 2. Drag the zip onto the Content Manager window.
 3. Press the three-lines icon (top right) and then **Install**.
-4. Join any session. Move the mouse to the right edge of the screen to show the apps bar, and open **Comisario**.
-5. Press the gear icon on the Comisario window to open the settings. Pick **English** at the top.
+4. Join any session. Move the mouse to the right edge of the screen to show the apps bar, and open **Steward**.
+5. Press the gear icon on the Steward window to open the settings. Pick **English** at the top.
 
 Manual install, if step 2 does not work: open the zip and copy the `apps` folder into the game folder (`...\steamapps\common\assettocorsa`).
 
 To **update**, repeat steps 1 to 3 with the new zip. Your settings are kept.
+
+**Coming from Comisario (1.6 or older)?** Install the Steward zip just like above. It also ships an empty `Comisario` folder that replaces the old app, so two apps never penalise at once. On first run Steward copies your Comisario settings (rules, administrator key and indicator position). Afterwards you can delete the `apps/lua/Comisario` folder. If the full old app were still there, Steward warns you on screen.
 
 ---
 
@@ -50,10 +57,10 @@ To **update**, repeat steps 1 to 3 with the new zip. Your settings are kept.
 Nothing else is needed besides the app.
 
 1. Set up the race in Content Manager (Drive > Quick Drive or Race), with or without AI, and join.
-2. Open the **Comisario** window. It is already watching.
+2. Open the **Steward** window. It is already watching.
 3. In the gear menu, **Start** tab, choose a **Standing** or **Rolling** start.
 
-While Comisario is on, the app turns off the game's own track-cut penalties so they do not add up with its own, and restores them when you turn it off. If the log says the game did not allow it, untick penalties in Content Manager before joining.
+While Steward is on, the app turns off the game's own track-cut penalties so they do not add up with its own, and restores them when you turn it off. If the log says the game did not allow it, untick penalties in Content Manager before joining.
 
 Two things need the track to be authorised, because Assetto Corsa does not let an app move cars or control the AI without permission:
 
@@ -66,21 +73,21 @@ To authorise it: gear > **More** tab > **Allow on this track**. Then leave the s
 
 ---
 
-## Case 2: joining a server that uses Comisario
+## Case 2: joining a server that uses Steward
 
 1. Install the app (see [Install the app](#install-the-app)).
 2. Join the server from Content Manager (Online tab) as usual.
-3. Open the **Comisario** window and keep **Comisario on** ticked.
+3. Open the **Steward** window and keep **Steward on** ticked.
 
 That is all. The server sends its part automatically and the rules are set by the server administrator: you do not configure anything or need any key.
 
-**How to check it works:** when you join, a "COMISARIO SERVER" (or "COMISARIO SERVIDOR") message with a version number shows up at the top, and the Comisario window says "linked to the server script".
+**How to check it works:** when you join, a "STEWARD SERVER" (or "STEWARD SERVIDOR") message with a version number shows up at the top, and the Steward window says "linked to the server script".
 
 **Without the app**, if the server requires it, your car cannot go over 60 km/h until you open it.
 
 ---
 
-## Case 3: creating your own server with Comisario
+## Case 3: creating your own server with Steward
 
 This is for whoever sets up the server in Content Manager. Drivers joining it follow case 2.
 
@@ -131,7 +138,7 @@ language = 'en'
 
 On the preset's **RULES** tab:
 
-- **Allowed tyres out**: set it to **4**, so the game does not add its own track limits penalty on top of Comisario's.
+- **Allowed tyres out**: set it to **4**, so the game does not add its own track limits penalty on top of Steward's.
 - **Jump start**: leave it on **car locked** (locked until the start). With the short rolling start, cars are moved into line during the countdown, and the other options are not tested.
 
 Save the preset and start the server.
@@ -140,7 +147,7 @@ Save the preset and start the server.
 
 1. Join your own server.
 2. In the app: gear > **Home** tab > **Administrator key**, and type the same key you set in `adminPass`.
-3. The Comisario window should say "you are the administrator".
+3. The Steward window should say "you are the administrator".
 
 From then on, the rules, start type and flags you choose in your app apply to every driver on the server.
 
@@ -161,16 +168,16 @@ From then on, the rules, start type and flags you choose in your app apply to ev
 
 ### Updating the server script
 
-Go to your gist, press **Edit**, replace the whole content with the new file and press **Update**. If you did point 7 of step 2, you do not need to touch Content Manager: just restart the server. When you join, the "COMISARIO SERVER" message should show the new version.
+Go to your gist, press **Edit**, replace the whole content with the new file and press **Update**. If you did point 7 of step 2, you do not need to touch Content Manager: just restart the server. When you join, the "STEWARD SERVER" message should show the new version.
 
 ---
 
 ## App settings
 
-The gear icon on the Comisario window opens the settings:
+The gear icon on the Steward window opens the settings:
 
-- At the top: language, **Comisario on** and **Show all options** (unticked, only the main options are shown).
-- Tabs: **Home** (rules summary and administrator key), **Start**, **Track** (limits and pits), **Contacts**, **Penalties** (durations and incident points), **Flags**, **Display** (indicator size and position) and **More** (AI, log and test buttons).
+- At the top: language, **Steward on** and **Show all options** (unticked, only the main options are shown).
+- Tabs: **Home** (rules summary and administrator key), **Start**, **Track** (limits and pits), **Contacts**, **Penalties** (durations and incident points), **Flags**, **Display** (light, dark or no-background style, indicator size and position) and **More** (AI, log and test buttons).
 - Where there is a **(?)**, the explanation shows up when you hover over it.
 
 *The images on this page are drawings made with the test simulator, not in-game screenshots.*
@@ -186,7 +193,7 @@ Yes, the app (case 2). The server script reaches them automatically.
 Yes. The app still warns and penalises. Without the script it cannot hold the car's speed on the formation lap, move it into line for the short start or send a disqualified driver to the pits.
 
 **I found a bug.**
-Report it in the [Issues](https://github.com/matipriv768-blip/Comisario/issues) tab. Attaching `Documents\Assetto Corsa\logs\comisario_log.txt` and, if you can, a short video helps a lot.
+Report it in the [Issues](https://github.com/matipriv768-blip/Steward/issues) tab. Attaching `Documents\Assetto Corsa\logs\steward_log.txt` and, if you can, a short video helps a lot.
 
 ---
 
@@ -224,19 +231,19 @@ The logic is tested outside the game with a simulator of the CSP API (`test/harn
 
 ```
 pip install lupa
-python3 test/check_i18n.py apps/lua/Comisario/Comisario.lua
-python3 test/run_tests.py apps/lua/Comisario/Comisario.lua
-python3 test/run_online.py apps/lua/Comisario/Comisario.lua
+python3 test/check_i18n.py apps/lua/Steward/Steward.lua
+python3 test/run_tests.py apps/lua/Steward/Steward.lua
+python3 test/run_online.py apps/lua/Steward/Steward.lua
 python3 test/run_server.py servidor/comisario_servidor.lua
 ```
 
-Texts are written in Spanish inside `tr('...')`; the English table `EN` is at the end of `Comisario.lua`. Adding a language means adding one more table like it. See [CONTRIBUTING.md](CONTRIBUTING.md) (Spanish).
+Texts are written in Spanish inside `tr('...')`; the English table `EN` is at the end of `Steward.lua`. Adding a language means adding one more table like it. See [CONTRIBUTING.md](CONTRIBUTING.md) (Spanish).
 
 ## Credits
 
-Created by Matías ([matipriv768-blip](https://github.com/matipriv768-blip)). The code, icons and logo were made with assistance from Claude, by Anthropic, drawn as SVG (`arte/generar_iconos.py`). The logo typeface is Barlow Condensed by Jeremy Tribby, under the SIL Open Font License.
+Created by Matías ([matipriv768-blip](https://github.com/matipriv768-blip)). The code, icons, logo, website and its illustrations were made with assistance from Claude, by Anthropic. The typefaces are Fraunces (The Fraunces Project Authors) and Inter (The Inter Project Authors), under the SIL Open Font License; their licences ship in `apps/lua/Steward/fonts/`.
 
-Comisario is an independent project. It is not affiliated with Real Penalty, iRacing, the FIA, Kunos Simulazioni or the authors of Custom Shaders Patch or Content Manager, and uses no code or files from those projects.
+Steward is an independent project. It is not affiliated with Real Penalty, iRacing, the FIA, Kunos Simulazioni or the authors of Custom Shaders Patch or Content Manager, and uses no code or files from those projects.
 
 ## License
 

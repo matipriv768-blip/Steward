@@ -1,10 +1,15 @@
-<p align="center"><img src="docs/logo.png" width="220" alt="Comisario"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo_oscuro.png">
+    <img src="docs/logo_claro.png" width="360" alt="Steward">
+  </picture>
+</p>
 
-# Comisario
+# Steward
 
-Comisario de carrera para **Assetto Corsa**. Vigila límites de pista, contactos, banderas y sanciones, offline y online, al estilo de Real Penalty. Es gratis y de código abierto.
+Comisario de carrera para **Assetto Corsa**. Vigila límites de pista, contactos, banderas y sanciones, offline y online, al estilo de Real Penalty. Es gratis y de código abierto. **Antes se llamaba Comisario.**
 
-**[English version](README.en.md)**
+**[Sitio web](https://matipriv768-blip.github.io/Steward/)** · **[English version](README.en.md)**
 
 ![Indicadores en pantalla](docs/interfaz.png)
 
@@ -13,8 +18,8 @@ Comisario de carrera para **Assetto Corsa**. Vigila límites de pista, contactos
 1. [Qué necesitas](#qué-necesitas)
 2. [Instalar la app](#instalar-la-app) (todos tienen que hacer esto)
 3. [Correr offline](#caso-1-correr-offline)
-4. [Entrar a un servidor que usa Comisario](#caso-2-entrar-a-un-servidor-que-usa-comisario)
-5. [Crear tu propio servidor con Comisario](#caso-3-crear-tu-propio-servidor-con-comisario)
+4. [Entrar a un servidor que usa Steward](#caso-2-entrar-a-un-servidor-que-usa-steward)
+5. [Crear tu propio servidor con Steward](#caso-3-crear-tu-propio-servidor-con-steward)
 6. [Ajustes de la app](#ajustes-de-la-app)
 7. [Preguntas frecuentes](#preguntas-frecuentes)
 8. [Qué hace](#qué-hace) y [límites conocidos](#estado-del-proyecto-y-límites-conocidos)
@@ -33,15 +38,17 @@ Comisario de carrera para **Assetto Corsa**. Vigila límites de pista, contactos
 
 Esto lo hace cada piloto, una sola vez.
 
-1. Descarga el archivo **`Comisario-x.x.x.zip`** de la última versión, en [Releases](https://github.com/matipriv768-blip/Comisario/releases/latest). No lo descomprimas.
+1. Descarga el archivo **`Steward-x.x.x.zip`** de la última versión, en [Releases](https://github.com/matipriv768-blip/Steward/releases/latest). No lo descomprimas.
 2. Arrastra el zip a la ventana de Content Manager.
 3. Pulsa el ícono de las tres rayas (arriba a la derecha) y luego **Install**.
-4. Entra a cualquier sesión. Lleva el mouse al borde derecho de la pantalla: aparece la barra de apps. Abre **Comisario**.
-5. Pulsa el engranaje de la ventana Comisario para abrir los ajustes. Arriba eliges el idioma (Español o English).
+4. Entra a cualquier sesión. Lleva el mouse al borde derecho de la pantalla: aparece la barra de apps. Abre **Steward**.
+5. Pulsa el engranaje de la ventana Steward para abrir los ajustes. Arriba eliges el idioma (Español o English).
 
 Instalación manual, si el paso 2 no funciona: abre el zip y copia la carpeta `apps` dentro de la carpeta del juego (`...\steamapps\common\assettocorsa`).
 
 Para **actualizar**, repite los pasos 1 a 3 con el zip nuevo. Tus ajustes se conservan.
+
+**¿Venías de Comisario (1.6 o anterior)?** Instala el zip de Steward igual que arriba. Trae también una carpeta `Comisario` vacía que reemplaza a la app anterior, para que no queden dos apps sancionando a la vez. La primera vez, Steward copia tus ajustes de Comisario (reglamento, clave de administrador y lugar de los indicadores). Después puedes borrar la carpeta `apps/lua/Comisario`. Si quedara la app anterior completa, Steward te lo avisa en pantalla.
 
 ---
 
@@ -50,10 +57,10 @@ Para **actualizar**, repite los pasos 1 a 3 con el zip nuevo. Tus ajustes se con
 No hace falta nada más que la app instalada.
 
 1. Arma la carrera en Content Manager (Drive > Quick Drive o Race), con o sin IA, y entra.
-2. Abre la ventana **Comisario**. Ya está vigilando.
+2. Abre la ventana **Steward**. Ya está vigilando.
 3. En el engranaje, pestaña **Largada**, elige salida **Parada** o **Lanzada**.
 
-Mientras el Comisario está activo, la app apaga las sanciones propias del juego por cortar pista, para que no se sumen a las suyas, y las deja como estaban al apagarlo. Si el registro dice que el juego no la dejó, desmarca las penalizaciones en Content Manager antes de entrar.
+Mientras el Steward está activo, la app apaga las sanciones propias del juego por cortar pista, para que no se sumen a las suyas, y las deja como estaban al apagarlo. Si el registro dice que el juego no la dejó, desmarca las penalizaciones en Content Manager antes de entrar.
 
 Dos cosas requieren autorizar la pista, porque Assetto Corsa no deja que una app mueva autos ni controle a la IA sin permiso:
 
@@ -66,21 +73,21 @@ Para autorizarla: engranaje > pestaña **Más** > **Permitir en esta pista**. De
 
 ---
 
-## Caso 2: entrar a un servidor que usa Comisario
+## Caso 2: entrar a un servidor que usa Steward
 
 1. Instala la app (sección [Instalar la app](#instalar-la-app)).
 2. Entra al servidor desde Content Manager (pestaña Online), como siempre.
-3. Abre la ventana **Comisario** y deja marcado **Comisario activo**.
+3. Abre la ventana **Steward** y deja marcado **Steward activo**.
 
 Eso es todo. El servidor te envía su parte automáticamente y las reglas las pone el administrador del servidor: tú no configuras nada ni necesitas ninguna clave.
 
-**Cómo saber que funciona:** al entrar aparece arriba el mensaje "COMISARIO SERVIDOR" con un número de versión, y la ventana Comisario dice "enlazado con el script del servidor".
+**Cómo saber que funciona:** al entrar aparece arriba el mensaje "STEWARD SERVIDOR" con un número de versión, y la ventana Steward dice "enlazado con el script del servidor".
 
 **Si no tienes la app** y el servidor la exige, tu auto no pasa de 60 km/h hasta que la abras.
 
 ---
 
-## Caso 3: crear tu propio servidor con Comisario
+## Caso 3: crear tu propio servidor con Steward
 
 Este caso es para quien arma el servidor en Content Manager. Los pilotos que entren hacen el caso 2.
 
@@ -130,7 +137,7 @@ requireApp = 1
 
 En la pestaña **RULES** del preset:
 
-- **Allowed tyres out**: ponlo en **4**, para que el juego no ponga su propia sanción por límites de pista encima de la de Comisario.
+- **Allowed tyres out**: ponlo en **4**, para que el juego no ponga su propia sanción por límites de pista encima de la de Steward.
 - **Jump start** (salida en falso): déjalo en **car locked** (auto bloqueado hasta la largada). Con la salida lanzada corta los autos se mueven a la fila durante la cuenta regresiva, y con las otras opciones no está probado.
 
 Guarda el preset y arranca el servidor.
@@ -139,7 +146,7 @@ Guarda el preset y arranca el servidor.
 
 1. Entra a tu propio servidor.
 2. Abre la app: engranaje > pestaña **Inicio** > **Clave de administrador**, y escribe la misma clave que pusiste en `adminPass`.
-3. La ventana Comisario debe decir "eres el administrador".
+3. La ventana Steward debe decir "eres el administrador".
 
 Desde ahí, el reglamento, el tipo de salida y las banderas que elijas en tu app valen para todos los pilotos del servidor.
 
@@ -160,7 +167,7 @@ Desde ahí, el reglamento, el tipo de salida y las banderas que elijas en tu app
 
 ### Actualizar el script del servidor
 
-Entra a tu gist, pulsa **Edit**, reemplaza todo el contenido por el archivo nuevo y pulsa **Update**. Si hiciste el punto 7 del paso 2, no tienes que tocar Content Manager: solo reinicia el servidor. Al entrar, el mensaje "COMISARIO SERVIDOR" debe mostrar la versión nueva.
+Entra a tu gist, pulsa **Edit**, reemplaza todo el contenido por el archivo nuevo y pulsa **Update**. Si hiciste el punto 7 del paso 2, no tienes que tocar Content Manager: solo reinicia el servidor. Al entrar, el mensaje "STEWARD SERVIDOR" debe mostrar la versión nueva.
 
 Más detalles en [`servidor/INSTRUCCIONES_SERVIDOR.txt`](servidor/INSTRUCCIONES_SERVIDOR.txt).
 
@@ -168,15 +175,15 @@ Más detalles en [`servidor/INSTRUCCIONES_SERVIDOR.txt`](servidor/INSTRUCCIONES_
 
 ## Ajustes de la app
 
-El engranaje de la ventana Comisario abre los ajustes:
+El engranaje de la ventana Steward abre los ajustes:
 
-- Arriba: idioma, **Comisario activo** y **Mostrar todas las opciones** (sin marcar se ven solo las principales).
-- Pestañas: **Inicio** (resumen del reglamento y clave de administrador), **Largada**, **Pista** (límites y pits), **Contactos**, **Sanciones** (duraciones y puntos de incidente), **Banderas**, **Pantalla** (tamaño y lugar de los indicadores) y **Más** (IA, registro y botones de prueba).
+- Arriba: idioma, **Steward activo** y **Mostrar todas las opciones** (sin marcar se ven solo las principales).
+- Pestañas: **Inicio** (resumen del reglamento y clave de administrador), **Largada**, **Pista** (límites y pits), **Contactos**, **Sanciones** (duraciones y puntos de incidente), **Banderas**, **Pantalla** (estilo claro, oscuro o sin fondo, tamaño y lugar de los indicadores) y **Más** (IA, registro y botones de prueba).
 - Donde hay un **(?)**, la explicación aparece al pasar el mouse por encima.
 
 ![Ventana de ajustes](docs/ajustes.png)
 
-*Las imágenes de esta página son dibujos hechos con el simulador de pruebas, no capturas del juego.*
+*Las imágenes de esta página son vistas previas generadas con el simulador de pruebas, no capturas del juego.*
 
 ---
 
@@ -189,10 +196,10 @@ Sí, la app (caso 2). El script del servidor les llega solo.
 Sí. La app igual avisa y sanciona. Lo que no puede hacer sin el script es frenar el auto en la formación, moverlo a la fila en la salida corta ni mandar a pits a un descalificado.
 
 **¿Se puede ver la guía completa?**
-Está en [`apps/lua/Comisario/LEEME.txt`](apps/lua/Comisario/LEEME.txt) y viene dentro del zip.
+Está en [`apps/lua/Steward/LEEME.txt`](apps/lua/Steward/LEEME.txt) y viene dentro del zip.
 
 **Encontré un error.**
-Repórtalo en la pestaña [Issues](https://github.com/matipriv768-blip/Comisario/issues). Ayuda mucho adjuntar el archivo `Documentos\Assetto Corsa\logs\comisario_log.txt` y, si puedes, un video corto.
+Repórtalo en la pestaña [Issues](https://github.com/matipriv768-blip/Steward/issues). Ayuda mucho adjuntar el archivo `Documentos\Assetto Corsa\logs\steward_log.txt` y, si puedes, un video corto.
 
 ---
 
@@ -228,19 +235,21 @@ Repórtalo en la pestaña [Issues](https://github.com/matipriv768-blip/Comisario
 
 | Carpeta | Contenido |
 |---|---|
-| `apps/lua/Comisario/` | La app: `Comisario.lua`, el manifiesto, la guía `LEEME.txt` y los íconos (`img/`). Es lo que se instala. |
+| `apps/lua/Steward/` | La app: `Steward.lua`, el manifiesto, la guía `LEEME.txt`, los íconos (`img/` y `img/oscuro/`) y las letras (`fonts/`). Es lo que se instala. |
+| `apps/lua/Comisario/` | Reemplazo vacío de la app anterior, para quien actualiza desde Comisario. |
 | `servidor/` | Script online para el servidor y sus instrucciones. |
 | `test/` | Simulador de la API de CSP y las pruebas. |
-| `arte/` | Scripts que dibujan los íconos, el logo y la lámina de señales (SVG renderizado con Playwright; la letra Barlow Condensed se instala con `npm install @fontsource/barlow-condensed`). |
-| `docs/` | Imágenes de esta página. |
+| `arte/` | Scripts que dibujan los íconos y el logo (SVG renderizado con Playwright; las letras se instalan con `npm install @fontsource/fraunces @fontsource/inter`). |
+| `web/` | Generador del sitio web (`construir_web.py`, textos en español e inglés e ilustraciones en SVG). |
+| `docs/` | El sitio web (GitHub Pages) y las imágenes de esta página. Las capturas del indicador salen de `test/preview_steward.py`. |
 
 La lógica se prueba fuera del juego con un simulador de la API de CSP (`test/harness.lua`). Se necesita Python 3 y el paquete `lupa`:
 
 ```
 pip install lupa
-python3 test/check_i18n.py apps/lua/Comisario/Comisario.lua
-python3 test/run_tests.py apps/lua/Comisario/Comisario.lua
-python3 test/run_online.py apps/lua/Comisario/Comisario.lua
+python3 test/check_i18n.py apps/lua/Steward/Steward.lua
+python3 test/run_tests.py apps/lua/Steward/Steward.lua
+python3 test/run_online.py apps/lua/Steward/Steward.lua
 python3 test/run_server.py servidor/comisario_servidor.lua
 ```
 
@@ -248,9 +257,9 @@ Ver [CONTRIBUTING.md](CONTRIBUTING.md) para proponer cambios y [CHANGELOG.md](CH
 
 ## Créditos
 
-Creado por Matías ([matipriv768-blip](https://github.com/matipriv768-blip)). El código, los íconos y el logo se hicieron con asistencia de Claude, de Anthropic, dibujados en SVG (`arte/generar_iconos.py`). La letra del logo es Barlow Condensed, de Jeremy Tribby, con licencia SIL Open Font License.
+Creado por Matías ([matipriv768-blip](https://github.com/matipriv768-blip)). El código, los íconos, el logo, el sitio web y sus ilustraciones se hicieron con asistencia de Claude, de Anthropic. Las letras son Fraunces (The Fraunces Project Authors) e Inter (The Inter Project Authors), con licencia SIL Open Font License; sus licencias van en `apps/lua/Steward/fonts/`.
 
-Comisario es un proyecto independiente. No está afiliado a Real Penalty, iRacing, la FIA, Kunos Simulazioni ni a los autores de Custom Shaders Patch o Content Manager, y no usa código ni archivos de esos proyectos. Algunas reglas (atajo con ventaja, escala de sanciones por velocidad) usan los mismos valores públicos de configuración de Real Penalty.
+Steward es un proyecto independiente. No está afiliado a Real Penalty, iRacing, la FIA, Kunos Simulazioni ni a los autores de Custom Shaders Patch o Content Manager, y no usa código ni archivos de esos proyectos. Algunas reglas (atajo con ventaja, escala de sanciones por velocidad) usan los mismos valores públicos de configuración de Real Penalty.
 
 ## Licencia
 

@@ -1,5 +1,18 @@
 # Cambios
 
+## 2.0.0 — Comisario pasa a llamarse Steward
+- Nombre nuevo: **Steward**. La app ahora vive en `apps/lua/Steward`. El zip trae una carpeta `Comisario` vacía que reemplaza a la anterior, para que no queden dos apps sancionando a la vez; esa carpeta se puede borrar.
+- La primera vez, Steward copia los ajustes guardados de Comisario (reglamento, clave de administrador, lugar y tamaño de los indicadores).
+- Si la app anterior siguiera instalada completa, Steward lo avisa en pantalla y en el registro.
+- Interfaz rediseñada con estilo editorial: tarjetas con borde fino, títulos en letra serif (Fraunces) y textos en Inter. Las letras vienen dentro de la app.
+- Tres estilos en Pantalla > Estilo: **claro** (de fábrica), **oscuro** y **sin fondo** (como el de la 1.x). La barra de estado es una píldora; la franja de color pasa a ser una línea fina.
+- Íconos nuevos de banderas y sanciones, en dos juegos: trazo oscuro para el estilo claro y trazo claro para el oscuro.
+- Logo e ícono de ventana nuevos. La ventana de ajustes usa los colores de la marca en pestañas, casillas y barras.
+- El registro ahora se guarda en `Documentos\Assetto Corsa\logs\steward_log.txt`.
+- Sitio web nuevo en español e inglés: https://matipriv768-blip.github.io/Steward/
+- Script del servidor 1.14: solo cambia el nombre en sus mensajes. Es compatible con Comisario 1.6 y con Steward 2.0.
+- Sin cambios en las reglas, las sanciones ni las largadas.
+
 ## 1.6.4
 - Íconos nuevos con estilo de señal real de pista: banderas de tela en su asta (verde, amarilla, amarilla total con dos banderas cruzadas, roja, azul, blanca, a cuadros, negra y la blanca y negra de aviso) y placas de comisario para las sanciones (DT, SG, tiempo, levantar el pie, devolver la posición, descalificado y sanción cumplida).
 - Logo e ícono de la ventana nuevos, hechos en SVG igual que los íconos (ya no con Canva).

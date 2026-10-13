@@ -74,7 +74,7 @@ def s1(a, b):
     both(a, b, 4)
     sb, sa = b.do('return screen()'), a.do('return screen()')
     return ('Matias: aviso 1/3 por limites de pista' in sb and 'Matias | 1x' in sb and 'Invitado | sin app' in sb
-            and 'Benja | 0x' in sa and 'Online: 1 pilotos mas con Comisario, reglas: las tuyas' in sa
+            and 'Benja | 0x' in sa and 'Online: 1 pilotos mas con Steward, reglas: las tuyas' in sa
             and b.do('return #T.messages') == 0)
 scenario('lo que le pasa a un piloto aparece en el panel y la clasificacion del otro; el que no tiene app sale "sin app"', s1)
 
@@ -90,7 +90,7 @@ def s2(a, b):
     sb = b.do('return screen()')
     return ('DRIVE-THROUGH | Causar un choque con Benja' in ma and 'DRIVE' not in mb.replace('MATIAS | drive-through', '')
             and 'MATIAS | drive-through: Causar un choque con Benja' in mb
-            and 'Incidentes: | 0x' in sb and 'debe pits' in sb and 'la sancion la decide su Comisario' in sb)
+            and 'Incidentes: | 0x' in sb and 'debe pits' in sb and 'la sancion la decide su Steward' in sb)
 scenario('choque por alcance online: se sanciona el culpable en su app y el golpeado recibe el aviso', s2)
 
 

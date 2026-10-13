@@ -1344,14 +1344,15 @@ scenario('indicador de largada: con amarilla total muestra la velocidad contra e
 
 # ---------------------------------------------------------------- interfaz fija y sin fondo
 scenario('interfaz fija: los indicadores se dibujan en una columna centrada en el punto elegido, no en ventanas', '''
-  T.cfg.hudFixed = true; T.cfg.hudX = 50; T.cfg.hudY = 10; T.cfg.hudBg = true
+  T.cfg.hudFixed = true; T.cfg.hudX = 50; T.cfg.hudY = 10; T.cfg.hudTheme = 1
   local c = place(0, 0, 120); c.isInPitlane = true; run(1); c.isInPitlane = false; place(0, 0, 150); run(1)
   T.texts = {}
   script.windowHudMessage(0.016); script.windowHudPenalty(0.016); script.windowHudStatus(0.016); script.windowHudStart(0.016)
   local windowsEmpty = #T.texts == 0
   script.fullscreenUI(0.016); script.fullscreenUI(0.016)
   local h = hudScreen()
-  local all = h:find('CARRERA') ~= nil and h:find('DRIVE%-THROUGH | Exceso en pits') ~= nil and h:find('SANCION PENDIENTE | DRIVE%-THROUGH | Pasa por pits sin parar') ~= nil
+  -- con fondo (estilo claro) los titulos van en tipo oracion y en letra serif
+  local all = h:find('CARRERA') ~= nil and h:find('Drive%-through | Exceso en pits') ~= nil and h:find('SANCION PENDIENTE | Drive%-through | Pasa por pits sin parar') ~= nil
   local pStatus, pPen = T.textPos['CARRERA'], T.textPos['SANCION PENDIENTE']
   -- pantalla de 1920 x 1080: la columna parte en y = 108 y esta centrada en x = 960; la sancion va debajo del estado
   local placed = pStatus.y >= 108 and pStatus.y < 130 and pStatus.x > 700 and pStatus.x < 960 and pPen.y > pStatus.y + 60 and pPen.x > 700 and pPen.x < 960
@@ -1372,9 +1373,9 @@ scenario('interfaz fija apagada: vuelven las ventanas sueltas y la pantalla comp
 scenario('sin fondo: no se dibujan los rectangulos de los carteles y las letras llevan el contorno del juego, una sola vez por cuadro', '''
   T.cfg.hudFixed = true
   local c = place(0, 0, 120); c.isInPitlane = true; run(1); c.isInPitlane = false; place(0, 0, 150); run(1)
-  T.cfg.hudBg = true; T.calls = {}; script.fullscreenUI(0.016)
+  T.cfg.hudTheme = 1; T.calls = {}; script.fullscreenUI(0.016)
   local rectsBg, textsBg, outBg = T.calls.drawRectFilled or 0, T.calls.dwriteDrawText or 0, T.calls.beginOutline or 0
-  T.cfg.hudBg = false; T.calls = {}; script.fullscreenUI(0.016)
+  T.cfg.hudTheme = 0; T.calls = {}; script.fullscreenUI(0.016)
   local rects, texts, out1, out2 = T.calls.drawRectFilled or 0, T.calls.dwriteDrawText or 0, T.calls.beginOutline, T.calls.endOutline
   local h = hudScreen()
   return rectsBg >= rects + 6 and texts == textsBg and outBg == 0 and out1 == 1 and out2 == 1
@@ -1384,14 +1385,14 @@ scenario('sin fondo: no se dibujan los rectangulos de los carteles y las letras 
 scenario('sin fondo, en un juego que no trae el contorno: se dibuja a mano con ocho copias oscuras de cada texto', '''
   T.cfg.hudFixed = true
   local c = place(0, 0, 120); c.isInPitlane = true; run(1); c.isInPitlane = false; place(0, 0, 150); run(1)
-  T.cfg.hudBg = true; T.calls = {}; script.fullscreenUI(0.016)
+  T.cfg.hudTheme = 1; T.calls = {}; script.fullscreenUI(0.016)
   local textsBg = T.calls.dwriteDrawText or 0
-  T.cfg.hudBg = false; T.calls = {}; script.fullscreenUI(0.016)
+  T.cfg.hudTheme = 0; T.calls = {}; script.fullscreenUI(0.016)
   return textsBg > 5 and T.calls.dwriteDrawText == textsBg * 9 and not logText():find('ERROR')
 ''', pre='NO_OUTLINE = true')
 
-scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija sin fondo y se cierran las ventanas sueltas', '''
-  local first = T.cfg.hudFixed == true and T.cfg.hudBg == false and T.cfg.uiVersion == 3 and T.cfg.hudY == 22
+scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija (desde la 2.0, con el estilo claro) y se cierran las ventanas sueltas', '''
+  local first = T.cfg.hudFixed == true and T.cfg.hudTheme == 1 and T.cfg.uiVersion == 4 and T.cfg.hudY == 22
     and T.windows.hud_msg == false and T.windows.hud_pen == false and T.windows.hud_status == false and T.windows.hud_start == false
   return first
 ''', pre='FRESH_INSTALL = true; STORED = { hudBg = true, hudFixed = false }')
@@ -1399,16 +1400,16 @@ scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija
 
 # ---------------------------------------------------------------- 1.5: posicion, nitidez, idioma y ajustes
 scenario('al actualizar desde la 1.4, la columna baja del 10% al 22% para no tapar el espejo virtual', '''
-  return T.cfg.hudY == 22 and T.cfg.uiVersion == 3 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
+  return T.cfg.hudY == 22 and T.cfg.uiVersion == 4 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 10, hudBg = false, hudFixed = true }')
 
 scenario('al actualizar, quien ya habia elegido otra altura la conserva', '''
-  return T.cfg.hudY == 40 and T.cfg.uiVersion == 3
+  return T.cfg.hudY == 40 and T.cfg.uiVersion == 4
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 40, hudBg = false, hudFixed = true }')
 
 scenario('nitidez: los textos y los iconos se dibujan siempre en pixeles enteros, con cualquier tamano', '''
   T.files['C:/logs/img/aviso.png'] = 'x'
-  T.cfg.hudFixed = true; T.cfg.hudBg = false; T.cfg.hudPlace = true
+  T.cfg.hudFixed = true; T.cfg.hudTheme = 0; T.cfg.hudPlace = true
   local function whole(v) return math.abs(v - math.floor(v + 0.5)) < 1e-6 end
   local ok, seen = true, 0
   for _, scale in ipairs({ 0.6, 0.85, 1, 1.3, 1.75, 2.5 }) do
@@ -1445,7 +1446,7 @@ scenario('nitidez: de cada icono se usa la imagen del tamano mas cercano al que 
 ''')
 
 scenario('pantallas grandes: en 4K los indicadores crecen en proporcion', '''
-  T.cfg.hudFixed = true; T.cfg.hudBg = true
+  T.cfg.hudFixed = true; T.cfg.hudTheme = 1
   local c = place(0, 0, 120); c.isInPitlane = true; run(1); c.isInPitlane = false; place(0, 0, 150); run(1)
   script.fullscreenUI(0.016); script.fullscreenUI(0.016)
   local a, b = T.textPos['CARRERA'], T.textPos['SANCION PENDIENTE']
@@ -1456,6 +1457,57 @@ scenario('pantallas grandes: en 4K los indicadores crecen en proporcion', '''
   local gap4k = b.y - a.y
   return gap1080 > 60 and math.abs(gap4k - gap1080 * 2) <= 3 and a.y >= 2160 * 0.22 - 1
 ''')
+
+# ---------------------------------------------------------------- 2.0: Steward, estilos claro y oscuro
+scenario('estilo claro: tarjetas con borde fino, titulos en tipo oracion y sin contorno en las letras', '''
+  T.cfg.hudFixed = true; T.cfg.hudTheme = 1
+  local c = place(0, 0, 120); c.isInPitlane = true; run(1); c.isInPitlane = false; place(0, 0, 150); run(1)
+  T.calls = {}; script.fullscreenUI(0.016)
+  local h = hudScreen()
+  return (T.calls.drawRect or 0) >= 2 and (T.calls.beginOutline or 0) == 0
+    and h:find('Drive%-through') ~= nil and h:find('SANCION PENDIENTE') ~= nil and not logText():find('ERROR')
+''')
+
+scenario('estilo oscuro: usa los iconos de trazo claro de la carpeta img/oscuro si estan', '''
+  for _, f in ipairs({ 'img/aviso.png', 'img/oscuro/aviso.png' }) do T.files['C:/logs/' .. f] = 'x' end
+  T.cfg.hudFixed = true; T.cfg.hudTheme = 2; T.cfg.hudPlace = true
+  T.images = {}; script.fullscreenUI(0.016)
+  local dark = #T.images > 0
+  for _, f in ipairs(T.images) do if not f:find('/img/oscuro/', 1, true) then dark = false end end
+  T.cfg.hudTheme = 1; T.images = {}; script.fullscreenUI(0.016)
+  local light = #T.images > 0
+  for _, f in ipairs(T.images) do if f:find('oscuro', 1, true) then light = false end end
+  return dark and light and not logText():find('ERROR')
+''')
+
+scenario('tipo oracion: respeta tildes, siglas y palabras con numeros', '''
+  T.cfg.hudFixed = true; T.cfg.hudTheme = 1
+  local c = place(0, 0, 150); run(1)
+  T.clickButton = 'Tiempo'; script.windowSettings(0.016); T.clickButton = nil; run(0.5)
+  local a = hudScreen()
+  T.clickButton = 'Aviso'; script.windowSettings(0.016); T.clickButton = nil; run(0.5)
+  local b = hudScreen()
+  -- tiempo: "Sancion +5 s" (el numero y el signo quedan igual); aviso: "Aviso de prueba"
+  return a:find('Sanci.n %+%d+ s') ~= nil and b:find('Aviso de prueba') ~= nil and a:find('SANCI.N %+') == nil
+''')
+
+scenario('ajustes de Comisario: la primera vez se copian a Steward, una sola vez', '''
+  run(6)
+  return T.cfg.migrated == true and T.cfg.hudY == 40 and T.cfg.adminKey == 'clave' and T.cfg.hudIcons == false
+    and T.cfg.hudTheme == 1 and logText():find('Ajustes de Comisario copiados') ~= nil
+''', pre="FRESH_INSTALL = true; STORED = { uiVersion = 3 }; PRELOAD = { ['C:/logs/lua/app/Comisario.ini'] = '[__STORAGE]\\nhudY=40\\nadminKey=\"clave\"\\nhudIcons=0\\nhudTheme=2\\nnoExiste=5\\n' }")
+
+scenario('si la app Comisario sigue instalada, se avisa en pantalla; si es el reemplazo vacio, no', '''
+  T.cfg.hudFixed = true; T.cfg.enabled = true
+  run(6); script.fullscreenUI(0.016)
+  return hudScreen():find('Borra la carpeta apps/lua/Comisario') ~= nil and logText():find('sigue instalada') ~= nil
+''', pre="PRELOAD = { ['C:/logs/Comisario/Comisario.lua'] = '-- codigo de la app anterior' }")
+
+scenario('el reemplazo vacio de Comisario no cuenta como app anterior instalada', '''
+  T.cfg.hudFixed = true; T.cfg.enabled = true
+  script.fullscreenUI(0.016)
+  return hudScreen():find('Borra la carpeta') == nil
+''', pre="PRELOAD = { ['C:/logs/Comisario/Comisario.lua'] = '-- STEWARD_STUB' }")
 
 scenario('ingles: avisos, sanciones, panel e indicadores salen en ingles', '''
   T.cfg.lang = 2

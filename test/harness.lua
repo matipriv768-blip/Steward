@@ -29,6 +29,7 @@ T.throttle = {}             -- limites de acelerador puestos a la IA: T.throttle
 T.pitReq = {}               -- pedidos de entrada a pits
 T.aiCaps = {}               -- limites de velocidad puestos a la IA
 T.files = {}                -- archivos del "disco"
+if PRELOAD then for k, v in pairs(PRELOAD) do T.files[k] = v end end   -- archivos que ya estaban antes de cargar la app
 T.windows = {}              -- ventanas abiertas con ac.setWindowOpen
 T.layout = ''
 T.time = 0
@@ -82,7 +83,7 @@ ac = {
     if t.rulesVersion ~= nil and not FRESH_INSTALL then
       for k, v in pairs({ tlMinTime = 0.4, tlMinSpeed = 50, tlPenalty = 2, tlMode = 1, tlReset = false, pitLimit = 80,
         pitTolerance = 3, tiers = false, gbPenalty = 3, ctHeavyPenalty = 3, incStep = 12, dtFailSec = 30, dtFailDQ = false,
-        endLaps = 0, formShort = false, hudBg = true, hudFixed = false, uiVersion = 99, formTwoWide = false }) do t[k] = v end
+        endLaps = 0, formShort = false, hudBg = true, hudTheme = 0, hudFixed = false, uiVersion = 99, formTwoWide = false }) do t[k] = v end
     end
     -- ajustes que el piloto ya tenia guardados antes de actualizar
     if STORED then for k, v in pairs(STORED) do t[k] = v end end
@@ -231,6 +232,8 @@ local known = {
   -- ventana de ajustes 1.5 (todas con uso comprobado en las apps oficiales de CSP)
   header = 1, bulletText = 1, alignTextToFramePadding = 1, offsetCursorY = 1, dummy = 1, setTooltip = 1,
   pushStyleColor = 1, popStyleColor = 1, setCursorX = 1,
+  -- 2.0: titulo de la ventana con la letra de la marca
+  dwriteText = 1,
 }
 ui = setmetatable({
   Font = { Small = 1, Title = 6 },
@@ -263,7 +266,8 @@ ui = setmetatable({
     T.calls.endOutline = (T.calls.endOutline or 0) + 1
   end or nil,
   InputTextFlags = { Password = 0x8000 },
-  StyleColor = { Text = 0 },
+  StyleColor = { Text = 0, Tab = 1, TabHovered = 2, TabActive = 3, CheckMark = 4, SliderGrab = 5, SliderGrabActive = 6, FrameBg = 7,
+    FrameBgHovered = 8, FrameBgActive = 9, Button = 10, ButtonHovered = 11, ButtonActive = 12, Header = 13, HeaderHovered = 14, HeaderActive = 15 },
   measureText = function (text) return vec2(#fold(text) * 6.6, 15) end,
   -- T.hoverAll simula el mouse encima de todo: asi se recorren todas las explicaciones
   itemHovered = function () return T.hoverAll or false end,
@@ -415,7 +419,7 @@ function newSession()
   T.cars[1].position = vec3(0, 0, 300); T.cars[2].position = vec3(0, 0, 600)
   T.messages = {}
 end
-function logText() return fold(T.saved['C:/logs/comisario_log.txt'] or '') end
+function logText() return fold(T.saved['C:/logs/steward_log.txt'] or '') end
 
 -- texto que se ve en las ventanas (panel y clasificacion)
 function screen()
