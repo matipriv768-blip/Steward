@@ -1,4 +1,5 @@
 """Dibuja los indicadores tal como los dibujaria el juego, para revisar el diseno."""
+import os
 import sys
 from lupa import luajit21 as lj
 from PIL import Image, ImageDraw, ImageFont
@@ -50,7 +51,10 @@ def make(scene_lua, width, height, placements, bg):
     lua.execute(scene_lua)
     img = Image.new('RGBA', (width * SS, height * SS))
     d0 = ImageDraw.Draw(img)
-    if isinstance(bg, str):
+    if bg == 'transparente':
+        bg = None
+        photo_used = True
+    elif isinstance(bg, str):
         photo = Image.open(bg).convert('RGBA')
         k = max(width * SS / photo.width, height * SS / photo.height)
         photo = photo.resize((int(photo.width * k) + 1, int(photo.height * k) + 1), Image.LANCZOS)
@@ -119,10 +123,13 @@ def make(scene_lua, width, height, placements, bg):
                 else:
                     d.text((x * SS, y * SS + size * SS * 0.08), text, font=f, fill=c)
         img = Image.alpha_composite(img, layer)
+    if os.environ.get('HUD_GRANDE'):  # sin reducir: el doble de resolucion, para video
+        return img
     return img.resize((width, height), Image.LANCZOS)
 
 if __name__ == '__main__':
-    # uso: preview_steward.py salida.png [es|en] [claro|oscuro|sinfondo] [fondo.jpg] [escenas separadas por coma]
+    # uso: preview_steward.py salida.png [es|en] [claro|oscuro|sinfondo] [fondo.jpg|transparente|-] [escenas separadas por coma]
+    # con HUD_GRANDE=1 sale al doble de resolucion (para el video)
     out = sys.argv[1]
     LANG_ID = 2 if (len(sys.argv) > 2 and sys.argv[2] == 'en') else 1
     THEME = {'claro': 1, 'oscuro': 2, 'sinfondo': 0}[sys.argv[3] if len(sys.argv) > 3 else 'claro']
@@ -143,7 +150,7 @@ if __name__ == '__main__':
     H = 470
     if len(scenes) == 1:
         img = make('LANG = %d; THEME = %d; ' % (LANG_ID, THEME) + scenes[0][1], W, H, place, BG)
-        img.convert('RGB').save(out); print('ok', out, img.size); sys.exit(0)
+        (img if BG == 'transparente' else img.convert('RGB')).save(out); print('ok', out, img.size); sys.exit(0)
     sheet = Image.new('RGBA', (W, (H + 34) * len(scenes) + 8), (18, 19, 22, 255))
     d = ImageDraw.Draw(sheet)
     lab = font(True, 16)

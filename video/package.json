@@ -1,0 +1,20 @@
+{
+  "name": "steward-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Video de presentación de Steward, hecho con Remotion",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render Steward salida/steward.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.535",
+    "remotion": "4.0.535",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}

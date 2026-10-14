@@ -26,6 +26,7 @@ Steward (antes se llamaba Comisario) es una app Lua para Assetto Corsa con Custo
 | `arte/` | Generadores de íconos y logo. |
 | `web/` y `docs/` | El sitio web. `docs/` es lo que publica GitHub Pages; se genera con `web/`. |
 | `herramientas/empaquetar.py` | Arma el zip de una versión. |
+| `video/` | Video de presentación hecho con Remotion (ver `video/README.md`). Los textos están en `video/src/guion.ts`. |
 
 ## Pruebas (córrelas siempre antes de un commit)
 
@@ -67,6 +68,10 @@ Para revisar el diseño sin abrir el juego:
 ## Sitio web
 
 `python3 web/construir_web.py docs` regenera `docs/index.html` a partir de `web/textos.py` (español e inglés) y `web/ilustraciones.py`. Las fotos están en `docs/assets/fotos` y los scripts que las preparan en `web/fotos/`. GitHub Pages publica `main` / `docs` en https://matipriv768-blip.github.io/Steward/.
+
+## Video
+
+El video de presentación vive en `video/` y se hace con Remotion (React). Para cambiar textos o tiempos se edita `video/src/guion.ts`; para ver los cambios, `npm run dev` dentro de `video/`, y para el MP4, `npm run render`. Si cambia el aspecto de los indicadores en la app, regenera las imágenes con `python3 video/generar_hud.py` desde la raíz. Las fotos son generadas con IA: no muestran carreras reales.
 
 ## Probar en el juego
 
