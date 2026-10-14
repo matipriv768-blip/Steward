@@ -14,7 +14,7 @@ Abre un issue con:
 ## Proponer un cambio de código
 
 1. Haz un fork y crea una rama para tu cambio.
-2. Corre las tres series de pruebas y la revisión de traducciones, y verifica que pasen (ver README).
+2. Corre las tres series de pruebas y la revisión de traducciones (los comandos están en CLAUDE.md), y verifica que pasen (ver README).
 3. Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
 4. Abre un pull request explicando qué cambia y cómo lo probaste, en el simulador y, si pudiste, en el juego.
 
