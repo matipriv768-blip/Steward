@@ -39,7 +39,7 @@ python3 test/run_online.py apps/lua/Steward/Steward.lua
 python3 test/run_server.py servidor/comisario_servidor.lua
 ```
 
-En la versión 2.1.0 dan: 498 traducciones sin problemas, 216/216, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
+En la versión 2.1.0 dan: 500 traducciones sin problemas, 216/216, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
 
 Para revisar el diseño sin abrir el juego:
 

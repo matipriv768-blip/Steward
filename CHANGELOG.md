@@ -1,11 +1,12 @@
 # Cambios
 
 ## 2.1.0 — Medianoche e indicadores a tu gusto
-- Corregido: pasar por un piano grueso con un auto bajo y duro (por ejemplo un F1 2006) marcaba "golpe contra el muro". El salto vertical del auto se sumaba como si fuera un golpe. Ahora solo cuenta la velocidad horizontal, el auto tiene que terminar más lento de lo que entró y, si alguna rueda va sobre un piano, se exige un tirón mayor. Lo descartado queda anotado en el registro.
+- Corregido: pasar por un piano grueso con un auto bajo y duro (por ejemplo un F1 2006) marcaba "golpe contra el muro". El salto vertical del auto se sumaba como si fuera un golpe. Ahora solo cuenta la velocidad horizontal, el auto tiene que terminar más lento de lo que entró y, si alguna rueda va sobre un piano, se exige un tirón mayor. Lo descartado queda anotado en el registro, con lo que habría medido la versión anterior. Probado en Spa con los F1 2006 de la IA: tres pisadas de piano que antes contaban como muro (15 a 19 km/h por el salto) ahora se descartan.
 - Cada indicador (estado, largada, aviso y sanción) se acomoda por separado en Pantalla > Acomodar los indicadores: en columna como antes, o libre, cada uno en su lugar. Un mapa de la pantalla permite arrastrarlos con el mouse y en el juego se mueven al mismo tiempo. Cada uno se puede ocultar y tiene su propio tamaño.
 - Estilo nuevo **Medianoche**, de fábrica: tarjetas casi negras con borde de un pixel y brillo arriba, títulos en Inter, números y etiquetas en letra monoespaciada (Geist Mono, licencia OFL, viene dentro de la app), íconos en un recuadro oscuro y un rombo coral como marca. Reemplaza al estilo oscuro; claro y sin fondo siguen disponibles.
 - Las tres ventanas (Steward, clasificación y ajustes) usan los colores de Medianoche: grises casi negros y coral en lo elegido.
 - Al actualizar, todos pasan una vez al estilo Medianoche.
+- Ventana Steward: si los botones Amarilla total, Roja y Verde no caben al lado del nombre de la bandera, bajan a la línea siguiente (antes Verde quedaba cortado).
 - Sin cambios en el script del servidor (sigue en 1.14).
 
 ## 2.0.0 — Comisario pasa a llamarse Steward

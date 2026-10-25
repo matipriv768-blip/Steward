@@ -1756,6 +1756,11 @@ function RS.onKerb(car)
     end
     return false
   end)
+  -- una sola vez: anotar si este juego informa la superficie de cada rueda (para saber si se detectan los pianos)
+  if RS.kerbApi == nil then
+    RS.kerbApi = ok
+    addLog(ok and 'Pianos: el juego informa la superficie de las ruedas' or 'Pianos: el juego no informa la superficie de las ruedas')
+  end
   return ok and res == true
 end
 local function updateWallWatch(i, car, dt)
@@ -1770,15 +1775,19 @@ local function updateWallWatch(i, car, dt)
   if d.pvx and dt > 0 then
     local dv = vlen(v.x - d.pvx, 0, v.z - d.pvz)
     if dv / dt >= (w.kerb and RS.WALL_G_KERB or RS.WALL_G) * 9.81 then w.lost = w.lost + dv * 3.6 end
+    -- la medida de hasta la 2.0 (con el salto vertical), solo para el registro
+    local dv3 = vlen(v.x - d.pvx, v.y - d.pvy, v.z - d.pvz)
+    if dv3 / dt >= RS.WALL_G * 9.81 then w.lost3d = (w.lost3d or 0) + dv3 * 3.6 end
   end
   if w.lost >= cfg.wallMinKmh and w.startKmh - w.minKmh >= cfg.wallMinKmh / 3 then
     d.wallWatch = nil
     d.wallCd = clock + 4
     wallContact(i, car, w.lost)
   elseif clock > w.untilTime then
-    if w.lost > 0 then
-      addLog(string.format('Muro descartado: %s, %.0f km/h de golpe pero solo %.0f km/h menos al final%s', driverName(i),
-        w.lost, w.startKmh - w.minKmh, w.kerb and ' (sobre un piano)' or ''))
+    -- solo se anota lo que antes habria contado o lo que estuvo cerca; los tirones chicos no ensucian el registro
+    if w.lost >= cfg.wallMinKmh / 2 or (w.lost3d or 0) >= cfg.wallMinKmh then
+      addLog(string.format('Muro descartado: %s, %.0f km/h de golpe en horizontal (%.0f contando el salto), %.0f km/h menos al final%s',
+        driverName(i), w.lost, w.lost3d or 0, w.startKmh - w.minKmh, w.kerb and ', sobre un piano' or ''))
     end
     d.wallWatch = nil
   end
@@ -3108,6 +3117,13 @@ function script.windowMain(dt)
     -- direccion de carrera: offline la maneja el jugador; online, solo el director
     if not online or amDirector() then
       ui.sameLine(0, 14)
+      -- si los tres botones no caben al lado del nombre de la bandera (una amarilla total es larga), bajan a otra linea
+      local need = 30
+      for _, t in ipairs({ tr('Amarilla total'), tr('Roja'), tr('Verde') }) do
+        local ok, m = pcall(ui.measureText, t)
+        need = need + ((ok and m and m.x) or #t * 7) + 18
+      end
+      if ui.availableSpaceX() < need then ui.dummy(vec2(1, 1)) end
       if ui.button(tr('Amarilla total')) then applyControl(1, cfg.fcySpeed, nil) end
       ui.sameLine(0, 4)
       if ui.button(tr('Roja')) then applyControl(2, cfg.fcySpeed, nil) end
@@ -4699,12 +4715,13 @@ function W.tabScreen(all)
     if ui.radioButton(tr('En columna') .. '##hudLay1', not cfg.hudFree) then cfg.hudFree = false end
     ui.sameLine(0, 10)
     if ui.radioButton(tr('Libre') .. '##hudLay2', cfg.hudFree == true) then W.freeFromColumn() end
-    if not cfg.hudFree then
-      W.slider(tr('Altura'), 'hudY', 0, 85, '%.0f %%', tr('0 = arriba de la pantalla.'))
-      W.slider(tr('Posición horizontal'), 'hudX', 5, 95, '%.0f %%', tr('50 = al centro.'))
-    end
     W.hint(tr('Arrastra los recuadros con el mouse: cada indicador se mueve en el juego al mismo tiempo. Si estaban en columna, pasan a libre.'))
+    -- el mapa va antes de lo que cambia entre columna y libre, para que no salte mientras se arrastra
     W.layoutMap()
+    if not cfg.hudFree then
+      W.slider(tr('Altura de la columna'), 'hudY', 0, 85, '%.0f %%', tr('0 = arriba de la pantalla.'))
+      W.slider(tr('Centro de la columna'), 'hudX', 5, 95, '%.0f %%', tr('50 = al centro.'))
+    end
   end
 
   local name = tr('Estado')
@@ -5252,6 +5269,8 @@ EN['Mostrar este indicador'] = 'Show this indicator'
 EN['Su tamaño'] = 'Its size'
 EN['Restablecer este indicador'] = 'Reset this indicator'
 EN['Otros'] = 'Other'
+EN['Altura de la columna'] = 'Column height'
+EN['Centro de la columna'] = 'Column centre'
 EN['La app anterior (Comisario) sigue instalada: borra la carpeta apps/lua/Comisario'] = 'The previous app (Comisario) is still installed: delete the apps/lua/Comisario folder'
 EN['Borra la carpeta apps/lua/Comisario'] = 'Delete the apps/lua/Comisario folder'
 EN['La app anterior sigue instalada y sancionaría dos veces'] = 'The previous app is still installed and would penalise twice'
