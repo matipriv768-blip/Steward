@@ -1,7 +1,7 @@
 --[[
   STEWARD  -  comisario de carrera para Assetto Corsa (app Lua de Custom Shaders Patch)
   Antes se llamaba Comisario.
-  Version 2.0.0  -  offline (contra la IA) y online (con amigos que tengan la app)
+  Version 2.1.0  -  offline (contra la IA) y online (con amigos que tengan la app)
 
   Que hace:
     1. Limites de pista, velocidad en pits y salida en falso.
@@ -23,7 +23,7 @@
   Codigo propio, escrito desde cero. No usa codigo ni archivos de otros plugins.
 ]]
 
-local VERSION = '2.0.0'
+local VERSION = '2.1.0'
 
 -- ---------------------------------------------------------------------------
 -- 1. AJUSTES (se guardan solos entre sesiones)
@@ -127,11 +127,18 @@ local DEFAULTS = {
   -- indicadores en pantalla
   hudScale = 1,            -- tamano de los indicadores
   hudBg = false,           -- (hasta la 1.6) fondo oscuro detras del texto; desde la 2.0 manda hudTheme
-  hudTheme = 1,            -- estilo de los indicadores: 0 = sin fondo, 1 = claro, 2 = oscuro
+  hudTheme = 2,            -- estilo de los indicadores: 0 = sin fondo, 1 = claro, 2 = medianoche (hasta la 2.0, oscuro)
   migrated = false,        -- ya se copiaron los ajustes de la app anterior (Comisario)
   hudFixed = true,         -- interfaz fija: los indicadores van en una columna en un lugar fijo de la pantalla
   hudX = 50,               -- interfaz fija: centro de la columna, en % del ancho de la pantalla
   hudY = 22,               -- interfaz fija: borde superior de la columna, en % del alto de la pantalla
+  -- 2.1: cada indicador por separado. hudFree = cada uno en su lugar (X = centro, Y = borde de arriba, en %);
+  -- sin marcar, van en columna. S = tamano propio (se multiplica por hudScale). On = se muestra.
+  hudFree = false,
+  hudStatusX = 50, hudStatusY = 22, hudStatusS = 1, hudStatusOn = true,
+  hudStartX = 50, hudStartY = 27, hudStartS = 1, hudStartOn = true,
+  hudMsgX = 50, hudMsgY = 37, hudMsgS = 1, hudMsgOn = true,
+  hudPenX = 50, hudPenY = 45, hudPenS = 1, hudPenOn = true,
   uiVersion = 0,           -- para aplicar una sola vez el estilo nuevo al actualizar la app
   hudIcons = true,         -- usar los iconos de banderas y sanciones (carpeta img); si no, banderas simples dibujadas
   lang = 1,                -- idioma de la app: 1 = espanol, 2 = ingles
@@ -211,6 +218,7 @@ local KIND_NONE, KIND_TIME, KIND_LIFT, KIND_DT, KIND_SG, KIND_DQ = 0, 1, 2, 3, 4
 --   salida en falso: hasta 50 km/h drive-through, hasta 200 stop and go de 10 s, mas que eso descalificacion
 --   formacion:       sobre el limite drive-through; sobre 1,25 veces el limite o adelantar, stop and go de 30 s
 local RP = { pit1 = 100, pit2 = 200, jump1 = 50, jump2 = 200, sgSec = 10, formSg = 30, formRatio = 1.25 }
+local RS = {}                   -- cosas de Steward (funciones y datos nuevos, para no pasar el tope de 200 variables locales)
 local KIND_NAMES = { [0] = N_('Ninguna'), N_('Tiempo'), N_('Levantar el pie'), 'Drive-through', 'Stop and go' }
 
 -- ---------------------------------------------------------------------------
@@ -1733,21 +1741,45 @@ end
 -- Frenar fuerte, doblar o tocar fondo en una bajada tambien cambian la velocidad, pero nunca mas rapido
 -- de lo que aguantan los neumaticos. Un golpe de verdad la cambia de un cuadro a otro. Por eso solo se
 -- suma el cambio de los cuadros en que la desaceleracion pasa de WALL_G (imposible sin chocar con algo).
-local WALL_G = 6
+-- Solo se mide la velocidad horizontal: al pasar por un piano grueso (sobre todo con autos bajos y duros,
+-- como un F1) el auto rebota hacia arriba y hacia abajo, y ese salto vertical no es un golpe contra nada.
+-- Ademas el auto tiene que terminar mas lento de lo que entro: un rebote no le quita velocidad.
+-- Si alguna rueda esta sobre un piano, la exigencia sube (WALL_G_KERB).
+RS.WALL_G, RS.WALL_G_KERB = 6, 10
+function RS.onKerb(car)
+  local ok, res = pcall(function ()
+    local kerb = ac.SurfaceExtendedType and ac.SurfaceExtendedType.Kerb
+    if kerb == nil then return false end
+    for k = 0, 3 do
+      local w = car.wheels[k]
+      if w and w.surfaceExtendedType == kerb then return true end
+    end
+    return false
+  end)
+  return ok and res == true
+end
 local function updateWallWatch(i, car, dt)
   local d = D(i)
   local w = d.wallWatch
   if not w then return end
+  local v = car.velocity
+  local flat = math.sqrt(v.x * v.x + v.z * v.z) * 3.6
+  if not w.startKmh then w.startKmh = d.pvx and math.sqrt(d.pvx * d.pvx + d.pvz * d.pvz) * 3.6 or flat end
+  w.minKmh = math.min(w.minKmh or flat, flat)
+  if RS.onKerb(car) then w.kerb = true end
   if d.pvx and dt > 0 then
-    local v = car.velocity
-    local dv = vlen(v.x - d.pvx, v.y - d.pvy, v.z - d.pvz)
-    if dv / dt >= WALL_G * 9.81 then w.lost = w.lost + dv * 3.6 end
+    local dv = vlen(v.x - d.pvx, 0, v.z - d.pvz)
+    if dv / dt >= (w.kerb and RS.WALL_G_KERB or RS.WALL_G) * 9.81 then w.lost = w.lost + dv * 3.6 end
   end
-  if w.lost >= cfg.wallMinKmh then
+  if w.lost >= cfg.wallMinKmh and w.startKmh - w.minKmh >= cfg.wallMinKmh / 3 then
     d.wallWatch = nil
     d.wallCd = clock + 4
     wallContact(i, car, w.lost)
   elseif clock > w.untilTime then
+    if w.lost > 0 then
+      addLog(string.format('Muro descartado: %s, %.0f km/h de golpe pero solo %.0f km/h menos al final%s', driverName(i),
+        w.lost, w.startKmh - w.minKmh, w.kerb and ' (sobre un piano)' or ''))
+    end
     d.wallWatch = nil
   end
 end
@@ -1919,7 +1951,6 @@ local function placeInFormation(i, slot, len)
 end
 
 -- RS: salida lanzada offline (fila en la cuenta regresiva, IA en orden) y avance de cada auto en la carrera.
-local RS = {}
 
 -- posicion en la pista (0 a 1) del lugar "slot" de la fila
 function RS.slotSpline(slot, len)
@@ -2946,6 +2977,12 @@ if stored.uiVersion < 4 then
   stored.hudTheme = 1
 end
 
+-- 2.1: estilo Medianoche (reemplaza al oscuro). Todos parten con el; en Pantalla se puede volver a claro o sin fondo.
+if stored.uiVersion < 5 then
+  stored.uiVersion = 5
+  stored.hudTheme = 2
+end
+
 -- ---------------------------------------------------------------------------
 -- 11. PANEL EN PANTALLA
 -- ---------------------------------------------------------------------------
@@ -3192,7 +3229,7 @@ local P_PURPLE = rgbm(0.72, 0.48, 0.96, 1)
 
 -- Los tamanos estan pensados para una pantalla de 1080 de alto; en pantallas mas grandes todo crece en proporcion.
 -- HX junta el estado del dibujo de los indicadores (un archivo Lua admite pocas variables sueltas).
-local HX = { k = 1, q = {}, n = 0, sizes = {}, soft = rgbm(0.92, 0.94, 0.97, 1) }
+local HX = { k = 1, es = 1, q = {}, n = 0, sizes = {}, soft = rgbm(0.92, 0.94, 0.97, 1) }
 function HX.level(level)
   if level == 0 then return HX.c.green end
   if level == 1 then return HX.c.yellow end
@@ -3213,9 +3250,12 @@ HX.PAL = {
   [1] = { ink = hex('#2c2c2c'), soft = hex('#646464'), line = hex('#dee2de'), bg = hex('#fefffc', 0.97), head = hex('#f9faf7', 0.97),
     border = hex('#dee2de'), shadow = rgbm(0, 0, 0, 0.10),
     green = hex('#2f8a55'), yellow = hex('#a77700'), orange = hex('#c2621a'), red = hex('#c23b2c'), blue = hex('#1f78ad'), purple = hex('#7650b8') },
-  [2] = { ink = hex('#f2f3ef'), soft = hex('#a9adb4'), line = rgbm(1, 1, 1, 0.14), bg = hex('#1f1f29', 0.95), head = hex('#282834', 0.95),
-    border = rgbm(1, 1, 1, 0.10), shadow = rgbm(0, 0, 0, 0.25),
-    green = hex('#5cc98a'), yellow = hex('#f2c230'), orange = hex('#f0913a'), red = hex('#f06a5a'), blue = hex('#6cb7e0'), purple = hex('#b49af0') },
+  -- 2.1: Medianoche. Casi negro, bordes de un pixel con un brillo arriba (como una tecla), letras blancas y grises,
+  -- numeros y etiquetas tecnicas en letra monoespaciada, y un solo color de marca: el coral.
+  [2] = { ink = hex('#ffffff'), soft = hex('#9c9c9d'), muted = hex('#6a6b6c'), line = hex('#2f3031'), bg = hex('#07080a', 0.94),
+    head = hex('#111214', 0.96), well = hex('#111214', 0.98), border = rgbm(1, 1, 1, 0.13), shine = rgbm(1, 1, 1, 0.07),
+    brand = hex('#ff6363'),
+    green = hex('#59d499'), yellow = hex('#ffc531'), orange = hex('#ff8c4a'), red = hex('#ff6363'), blue = hex('#56c2ff'), purple = hex('#b48cff') },
 }
 HX.c = HX.PAL[1]
 HX.solid = true
@@ -3229,7 +3269,19 @@ function HX.refreshScreen()
   HX.c = HX.PAL[theme]
   HX.solid = theme ~= 0
 end
-local function hs(v) return v * cfg.hudScale * HX.k end
+-- HX.es: tamano propio del indicador que se esta dibujando (Pantalla > Acomodar)
+local function hs(v) return v * cfg.hudScale * HX.k * HX.es end
+-- Ventana suelta de un indicador (interfaz fija apagada). Respeta si esta oculto y su tamano propio.
+function RS.hudWin(key, draw)
+  if cfg.hudFixed or cfg['hud' .. key .. 'On'] == false then return end
+  HX.refreshScreen()
+  HX.n = 0
+  HX.es = math.max(0.5, math.min(2.5, cfg['hud' .. key .. 'S'] or 1))
+  draw(ui.getCursor())
+  HX.es = 1
+  HX.flush()
+end
+
 -- pixel entero: un texto o una imagen entre dos pixeles se ve borroso
 local function px(v) return math.floor(v + 0.5) end
 
@@ -3256,12 +3308,20 @@ function HX.initFonts()
   else
     HX.F = { serif = 'Georgia', bold = FONT_BOLD, reg = FONT_REG, strong = FONT_BOLD }
   end
+  -- monoespaciada del estilo Medianoche (Geist Mono, licencia OFL); sin el archivo, la de Windows
+  HX.F.mono = (here and io.fileExists(here .. '/fonts/GeistMono-500.ttf')) and 'Geist Mono:./fonts;Weight=Medium' or 'Consolas;Weight=Bold'
 end
 
--- bold: true = etiqueta en negrita, false = texto normal, 'serif' = titulo o numero grande
+-- bold: true = etiqueta en negrita, false = texto normal, 'serif' = titulo, 'num' = numero grande.
+-- Medianoche: titulos en Inter normal (grandes, sin negrita), etiquetas y numeros en monoespaciada.
 function HX.font(bold)
   HX.initFonts()
-  if bold == 'serif' then return HX.solid and HX.F.serif or HX.F.strong end
+  if HX.theme == 2 then
+    if bold == 'serif' then return HX.F.reg end
+    if bold == 'num' or bold == true then return HX.F.mono end
+    return HX.F.reg
+  end
+  if bold == 'serif' or bold == 'num' then return HX.solid and HX.F.serif or HX.F.strong end
   -- sin fondo todo va en negrita: las letras delgadas se pierden sobre la pista
   if bold or not HX.solid then return HX.F.bold end
   return HX.F.reg
@@ -3339,15 +3399,38 @@ end
 local function panel(x, y, w, h, alpha, color, radius)
   if not HX.solid then return end
   local a = alpha or 1
+  if HX.theme == 2 then
+    -- Medianoche: sin sombra; un borde de un pixel y una linea de brillo arriba, por dentro
+    local r = radius or hs(14)
+    ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(color or HX.c.bg, a), r)
+    local inset = math.min(r, h / 2)
+    ui.drawRectFilled(vec2(x + inset, y + 1), vec2(x + w - inset, y + 2), fade(HX.c.shine, a))
+    ui.drawRect(vec2(x, y), vec2(x + w, y + h), fade(HX.c.border, a), r, nil, 1)
+    return
+  end
   local r = radius or hs(10)
   ui.drawRectFilled(vec2(x, y + hs(2)), vec2(x + w, y + h + hs(3)), fade(HX.c.shadow, a), r)
   ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(color or HX.c.bg, a), r)
   ui.drawRect(vec2(x, y), vec2(x + w, y + h), fade(HX.c.border, a), r, nil, 1)
 end
 
+-- Medianoche: el icono va dentro de un pozo oscuro con borde fino, como un icono de app
+function HX.well(x, y, w, h, alpha, color)
+  if HX.theme ~= 2 then return end
+  local a = alpha or 1
+  ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(HX.c.well, a), hs(10))
+  ui.drawRect(vec2(x, y), vec2(x + w, y + h), fade(color and fade(color, 0.55) or HX.c.border, a), hs(10), nil, 1)
+end
+
 -- marca de color: una linea fina a la izquierda del texto, en vez de la franja gruesa de la 1.x
 function HX.accent(x, y, h, color, alpha)
   if not HX.solid then return end
+  if HX.theme == 2 then
+    -- Medianoche: una marca mas corta y delgada, centrada
+    local m = math.max(hs(10), h * 0.28)
+    ui.drawRectFilled(vec2(x + hs(7), y + m), vec2(x + hs(9), y + h - m), fade(color, alpha or 1), hs(1))
+    return
+  end
   ui.drawRectFilled(vec2(x + hs(7), y + hs(12)), vec2(x + hs(9.5), y + h - hs(12)), fade(color, alpha or 1), hs(2))
 end
 
@@ -3467,9 +3550,11 @@ local function drawHudMessage(c)
   local w = math.max(hs(320), textX + math.max(tw(title, ts, 'serif'), tw(detail, ds, false)) + hs(22))
   local h = detail ~= '' and hs(68) or hs(50)
   panel(c.x, c.y, w, h, alpha)
-  HX.accent(c.x, c.y, h, HX.level(level), alpha)
+  -- en Medianoche el color va en el borde del pozo del icono
+  if not (big and HX.theme == 2) then HX.accent(c.x, c.y, h, HX.level(level), alpha) end
   if big then
     local ih = math.min(hs(46), h - hs(8))
+    HX.well(c.x + hs(12), c.y + hs(6), hs(76), h - hs(12), alpha, HX.level(level))
     drawFlag(c.x + hs(16), c.y + (h - ih) / 2, hs(68), ih, kind, alpha)
   else
     drawFlag(c.x + hs(16), c.y + (h - hs(30)) / 2, hs(44), hs(30), kind, alpha)
@@ -3480,11 +3565,7 @@ local function drawHudMessage(c)
 end
 
 function script.windowHudMessage(dt)
-  if cfg.hudFixed then return end
-  HX.refreshScreen()
-  HX.n = 0
-  drawHudMessage(ui.getCursor())
-  HX.flush()
+  RS.hudWin('Msg', drawHudMessage)
 end
 
 -- LARGADA: velocimetro de la formacion (tu velocidad contra el limite) y semaforo verde al largar.
@@ -3539,8 +3620,8 @@ local function drawHudStart(c)
   txt(label, hs(11), c.x + hs(18), y + hs(7), soft, true)
   txt(sub, hs(11), c.x + w - tw(sub, hs(11), true) - hs(14), y + hs(7), soft, true)
   local num = string.format('%d', round(speed))
-  txt(num, hs(36), c.x + hs(18), y + hs(15), color, 'serif')
-  txt('km/h', hs(14), c.x + hs(24) + tw(num, hs(36), 'serif'), y + hs(35), soft, false)
+  txt(num, hs(36), c.x + hs(18), y + hs(15), color, 'num')
+  txt('km/h', hs(14), c.x + hs(24) + tw(num, hs(36), 'num'), y + hs(35), soft, false)
   local max = tr('MÁX %s', limit)
   txt(max, hs(20), c.x + w - tw(max, hs(20), true) - hs(12), y + hs(28), HX.c.ink, true)
   -- barra: la marca blanca es el limite
@@ -3698,7 +3779,7 @@ function RS.drawRadar(c, y, w, f)
   HX.accent(c.x, y, h, color)
   txt(tr('DISTANCIA AL DE ADELANTE'), hs(11), c.x + hs(18), y + hs(7), soft, true)
   local num = string.format('%d m', round(math.max(-99, math.min(999, gap))))
-  txt(num, hs(22), c.x + hs(18), y + hs(18), color, 'serif')
+  txt(num, hs(22), c.x + hs(18), y + hs(18), color, 'num')
   txt(hint, hs(15), c.x + w - tw(hint, hs(15), true) - hs(14), y + hs(22), color, true)
   -- barra: rojo muy cerca, verde la distancia buena, gris lejos; la marca blanca es donde estas
   local x1, full, by = c.x + hs(18), w - hs(32), y + h - laneH - hs(15)
@@ -3714,11 +3795,7 @@ function RS.drawRadar(c, y, w, f)
 end
 
 function script.windowHudStart(dt)
-  if cfg.hudFixed then return end
-  HX.refreshScreen()
-  HX.n = 0
-  drawHudStart(ui.getCursor())
-  HX.flush()
+  RS.hudWin('Start', drawHudStart)
 end
 
 -- SANCION PENDIENTE: que tienes que hacer y cuanto margen queda. Se queda en pantalla hasta que cumples.
@@ -3773,9 +3850,12 @@ local function drawHudPenalty(c)
   if HX.solid then
     ui.drawRectFilled(vec2(c.x + hs(16), c.y + headH), vec2(c.x + w - hs(16), c.y + headH + 1), HX.c.border)
   end
-  HX.accent(c.x, c.y, h, color)
+  if not (ix > 0 and HX.theme == 2) then HX.accent(c.x, c.y, h, color) end
   txt(head, hs(11), c.x + hs(18), c.y + hs(6), soft, true)
-  if ix > 0 then drawFlag(c.x + hs(16), c.y + hs(32), hs(68), hs(46), icon, 1) end
+  if ix > 0 then
+    HX.well(c.x + hs(12), c.y + hs(29), hs(76), hs(52), 1, color)
+    drawFlag(c.x + hs(16), c.y + hs(32), hs(68), hs(46), icon, 1)
+  end
   local count = #d.penalties + (gb and 1 or 0)
   if count > 1 and not d.dq then
     local more = tr('1 de %s', count)
@@ -3805,11 +3885,7 @@ local function drawHudPenalty(c)
 end
 
 function script.windowHudPenalty(dt)
-  if cfg.hudFixed then return end
-  HX.refreshScreen()
-  HX.n = 0
-  drawHudPenalty(ui.getCursor())
-  HX.flush()
+  RS.hudWin('Pen', drawHudPenalty)
 end
 
 -- ESTADO: una barra delgada con la sesion, los avisos, los puntos y el tiempo de sancion.
@@ -3899,11 +3975,15 @@ local function drawHudStatus(c)
     items[#items + 1] = { flag = first == KIND_LIFT and 'lift' or (first == KIND_SG and 'sg' or (first == KIND_DT and 'dt' or 'pen')) }
   end
 
+  -- Medianoche: la barra parte con el rombo coral de la marca
+  if HX.theme == 2 then table.insert(items, 1, { brand = true }) end
+
   -- medir y dibujar
   local size, pad, h = hs(HX.solid and 13 or 15), hs(HX.solid and 14 or 12), hs(HX.solid and 34 or 32)
   local w = pad
   for _, it in ipairs(items) do
-    if it.sep then it.w = hs(1) + pad
+    if it.brand then it.w = hs(11) + pad - hs(4)
+    elseif it.sep then it.w = hs(1) + pad
     elseif it.dots then it.w = it.dots * hs(15) + pad
     elseif it.flag then it.w = (iconsOn() and hs(36) or hs(26)) + pad
     else it.w = tw(it.text, size, it.bold) + pad end
@@ -3913,7 +3993,11 @@ local function drawHudStatus(c)
   panel(c.x, c.y, w, h, 1, nil, h / 2)
   local x = c.x + pad + (HX.solid and hs(2) or 0)
   for _, it in ipairs(items) do
-    if it.sep then
+    if it.brand then
+      local cx, cy, r = x + hs(5), c.y + h / 2, hs(5)
+      ui.drawTriangleFilled(vec2(cx, cy - r), vec2(cx + r, cy), vec2(cx - r, cy), HX.c.brand)
+      ui.drawTriangleFilled(vec2(cx - r, cy), vec2(cx + r, cy), vec2(cx, cy + r), HX.c.brand)
+    elseif it.sep then
       if HX.solid then ui.drawRectFilled(vec2(x, c.y + hs(7)), vec2(x + hs(1), c.y + h - hs(7)), HX.c.line) end
     elseif it.dots then
       for k = 1, it.dots do
@@ -3933,21 +4017,55 @@ local function drawHudStatus(c)
 end
 
 function script.windowHudStatus(dt)
-  if cfg.hudFixed then return end
-  HX.refreshScreen()
-  HX.n = 0
-  drawHudStatus(ui.getCursor())
-  HX.flush()
+  RS.hudWin('Status', drawHudStatus)
 end
 
--- INTERFAZ FIJA: el juego llama a esta funcion para dibujar sobre toda la pantalla. Los cuatro indicadores
--- van en una columna (estado, largada, aviso y sancion), centrada en el punto elegido en los ajustes.
--- No son ventanas: no se pueden mover ni cerrar por accidente.
+-- INTERFAZ FIJA: el juego llama a esta funcion para dibujar sobre toda la pantalla. No son ventanas: no se pueden
+-- cerrar por accidente. Dos formas de acomodarlos (Ajustes > Pantalla):
+--   en columna: los cuatro uno bajo otro (estado, largada, aviso y sancion), centrados en hudX / hudY;
+--   libre: cada uno en su lugar (hud<Clave>X = centro, hud<Clave>Y = borde de arriba, en % de la pantalla).
+-- Cada uno tiene ademas su tamano (hud<Clave>S) y se puede ocultar (hud<Clave>On).
 local fixedWidth = {}
-local FIXED_ORDER = { { 'status', drawHudStatus }, { 'start', drawHudStart }, { 'msg', drawHudMessage }, { 'pen', drawHudPenalty } }
+-- clave de los ajustes, funcion que lo dibuja, nombre en los ajustes y alto aproximado (para dejarle lugar)
+local FIXED_ORDER = {
+  { 'Status', drawHudStatus, 'Estado', 34 }, { 'Start', drawHudStart, 'Largada', 80 },
+  { 'Msg', drawHudMessage, 'Aviso', 68 }, { 'Pen', drawHudPenalty, 'Sanción', 112 },
+}
+RS.rect = {}                 -- donde quedo cada indicador en el ultimo cuadro (pixeles): x, y, w, h
+RS.col = {}                  -- donde iria cada uno en la columna (en %), para pasar al modo libre
+RS.screen = vec2(1920, 1080)
+RS.sel = 'Status'            -- indicador elegido en el mapa de los ajustes
+
+-- marco y nombre de cada indicador mientras se acomodan (modo ejemplo)
+function RS.frame(key, name)
+  local r = RS.rect[key]
+  if not r then return end
+  local m = hs(5)
+  local sel = RS.sel == key
+  local col = sel and rgbm(1, 0.39, 0.39, 0.95) or rgbm(1, 1, 1, 0.45)
+  ui.drawRect(vec2(r.x - m, r.y - m), vec2(r.x + r.w + m, r.y + r.h + m), col, hs(16), nil, sel and 2 or 1)
+  HX.initFonts()
+  local label = string.upper(tr(name))
+  local fs = math.max(10, hs(11))
+  ui.pushDWriteFont(HX.F.mono)
+  ui.dwriteDrawText(label, fs, vec2(px(r.x - m + hs(4)), px(math.max(2, r.y - m - fs - hs(5)))), col)
+  ui.popDWriteFont()
+end
 
 function RS.title()
   HX.initFonts()
+  if cfg.hudTheme == 2 then
+    -- Medianoche: rombo coral y el nombre en Inter
+    local p = ui.getCursor()
+    local cx, cy, r = p.x + 6, p.y + 14, 5
+    ui.drawTriangleFilled(vec2(cx, cy - r), vec2(cx + r, cy), vec2(cx - r, cy), hex('#ff6363'))
+    ui.drawTriangleFilled(vec2(cx - r, cy), vec2(cx + r, cy), vec2(cx, cy + r), hex('#ff6363'))
+    ui.setCursor(vec2(p.x + 18, p.y))
+    ui.pushDWriteFont(HX.F.bold)
+    ui.dwriteText('Steward', 21, rgbm(1, 1, 1, 1))
+    ui.popDWriteFont()
+    return
+  end
   ui.pushDWriteFont(HX.F.serif)
   ui.dwriteText('Steward', 22, rgbm(1, 1, 1, 1))
   ui.popDWriteFont()
@@ -3956,6 +4074,7 @@ end
 function script.fullscreenUI(dt)
   if not cfg.hudFixed then return end
   HX.n = 0
+  HX.es = 1
   local ok, err = pcall(function ()
     HX.refreshScreen()
     local size = ac.getUI().windowSize
@@ -3971,15 +4090,33 @@ function script.fullscreenUI(dt)
       txt(t2, hs(14), x + hs(22), px(y) + hs(37), HX.c.soft, false)
       y = y + hs(70)
     end
+    RS.screen = vec2(size.x, size.y)
+    local colY = y
     for _, item in ipairs(FIXED_ORDER) do
+      local key = item[1]
+      HX.es = math.max(0.5, math.min(2.5, cfg['hud' .. key .. 'S'] or 1))
       -- cada indicador se centra con el ancho que tuvo en el cuadro anterior
-      local last = fixedWidth[item[1]] or hs(330)
-      local x = px(math.max(4, math.min(size.x - last - 4, cx - last / 2)))
-      local w, h = item[2](vec2(x, px(y)))
-      if w and h then
-        fixedWidth[item[1]] = w
-        y = y + h + hs(8)
+      local last = fixedWidth[key] or hs(330)
+      RS.col[key] = { x = cfg.hudX, y = colY / size.y * 100 }
+      local x, top = cx - last / 2, y
+      if cfg.hudFree then
+        x = size.x * (cfg['hud' .. key .. 'X'] or 50) / 100 - last / 2
+        top = math.max(0, math.min(size.y - hs(30), size.y * (cfg['hud' .. key .. 'Y'] or 22) / 100))
       end
+      x = px(math.max(4, math.min(size.x - last - 4, x)))
+      local w, h
+      if cfg['hud' .. key .. 'On'] ~= false then w, h = item[2](vec2(x, px(top))) end
+      if w and h then
+        fixedWidth[key] = w
+        RS.rect[key] = { x = x, y = px(top), w = w, h = h }
+        if not cfg.hudFree then y = y + h + hs(8) end
+        colY = colY + h + hs(8)
+        if cfg.hudPlace then RS.frame(key, item[3]) end
+      else
+        RS.rect[key] = nil
+        colY = colY + hs(item[4] + 8)
+      end
+      HX.es = 1
     end
     HX.flush()
   end)
@@ -4481,13 +4618,120 @@ function W.tabFlags(all)
   W.hint(tr('Los botones Amarilla total, Roja y Verde están en la ventana Steward. Offline los usas tú; online, solo el director de carrera.'))
 end
 
+-- Pasa del modo columna al libre dejando cada indicador donde estaba
+function W.freeFromColumn()
+  if cfg.hudFree then return end
+  local sw, sh = math.max(1, RS.screen.x), math.max(1, RS.screen.y)
+  for _, item in ipairs(FIXED_ORDER) do
+    local key, r, c = item[1], RS.rect[item[1]], RS.col[item[1]]
+    local x, y = nil, nil
+    if r then x, y = (r.x + r.w / 2) / sw * 100, r.y / sh * 100
+    elseif c then x, y = c.x, c.y end
+    if x then
+      cfg['hud' .. key .. 'X'] = math.floor(x * 10 + 0.5) / 10
+      cfg['hud' .. key .. 'Y'] = math.floor(y * 10 + 0.5) / 10
+    end
+  end
+  cfg.hudFree = true
+end
+
+-- Mapa de la pantalla: un recuadro por indicador, que se arrastra con el mouse. El indicador de verdad se mueve
+-- al mismo tiempo en el juego. Clic en un recuadro = elegirlo para cambiar su tamano o esconderlo.
+function W.layoutMap()
+  HX.initFonts()
+  local sw, sh = math.max(1, RS.screen.x), math.max(1, RS.screen.y)
+  local mw = math.floor(math.min(ui.availableSpaceX(), 520))
+  local mh = math.floor(mw * sh / sw)
+  local p = ui.getCursor()
+  ui.drawRectFilled(p, vec2(p.x + mw, p.y + mh), hex('#040506'), 8)
+  ui.drawRect(p, vec2(p.x + mw, p.y + mh), hex('#363739'), 8, nil, 1)
+  local k = mw / sw
+  local guessY = cfg.hudY      -- sin datos del juego todavia: en columna, con el alto aproximado de cada uno
+  for _, item in ipairs(FIXED_ORDER) do
+    local key = item[1]
+    local r, c = RS.rect[key], RS.col[key]
+    local scale = cfg.hudScale * HX.k * (cfg['hud' .. key .. 'S'] or 1)
+    if not c then c = { x = cfg.hudX, y = guessY } end
+    guessY = guessY + (item[4] + 8) * scale / sh * 100
+    local bw = math.max(18, (r and r.w or (fixedWidth[key] or 330 * scale)) * k)
+    local bh = math.max(15, (r and r.h or item[4] * scale) * k)
+    local cxp, cyp
+    if cfg.hudFree then cxp, cyp = cfg['hud' .. key .. 'X'], cfg['hud' .. key .. 'Y']
+    elseif r then cxp, cyp = (r.x + r.w / 2) / sw * 100, r.y / sh * 100
+    else cxp, cyp = c.x, c.y end
+    local bx = math.max(p.x, math.min(p.x + mw - bw, p.x + mw * cxp / 100 - bw / 2))
+    local by = math.max(p.y, math.min(p.y + mh - bh, p.y + mh * cyp / 100))
+    ui.setCursor(vec2(bx, by))
+    ui.invisibleButton('##hudbox' .. key, vec2(bw, bh))
+    if ui.itemClicked() or ui.itemActive() then RS.sel = key end
+    if ui.itemActive() then
+      local d = ui.mouseDelta()
+      if d and (d.x ~= 0 or d.y ~= 0) then
+        W.freeFromColumn()
+        local xk, yk = 'hud' .. key .. 'X', 'hud' .. key .. 'Y'
+        cfg[xk] = math.max(0, math.min(100, cfg[xk] + d.x / mw * 100))
+        cfg[yk] = math.max(0, math.min(97, cfg[yk] + d.y / mh * 100))
+      end
+    end
+    local sel = RS.sel == key
+    local on = cfg['hud' .. key .. 'On'] ~= false
+    ui.drawRectFilled(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and '#452324' or '#1b1c1e', on and 1 or 0.45), 4)
+    ui.drawRect(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and '#ff6363' or '#454647', on and 1 or 0.5), 4, nil, 1)
+    ui.pushDWriteFont(HX.F.mono)
+    ui.dwriteDrawText(string.upper(tr(item[3])), 9, vec2(bx + 4, by + math.max(1, bh / 2 - 6)), hex(on and '#e6e6e6' or '#6a6b6c'))
+    ui.popDWriteFont()
+  end
+  ui.setCursor(vec2(p.x, p.y + mh + 6))
+  ui.dummy(vec2(mw, 1))
+end
+
 function W.tabScreen(all)
   W.check(tr('Mostrar un ejemplo para acomodarla'), 'hudPlace', tr('Deja a la vista todos los indicadores mientras eliges el lugar y el tamaño.'))
-  W.slider(tr('Tamaño'), 'hudScale', 0.6, 2.5, '%.1f', nil, true)
-  W.slider(tr('Altura'), 'hudY', 0, 85, '%.0f %%', tr('0 = arriba de la pantalla.'))
-  W.slider(tr('Posición horizontal'), 'hudX', 5, 95, '%.0f %%', tr('50 = al centro.'))
-  W.radio(tr('Estilo'), 'hudTheme', { tr('Sin fondo'), tr('Claro'), tr('Oscuro') }, 0,
-    tr('Claro y oscuro: tarjetas con fondo. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'))
+  W.radio(tr('Estilo'), 'hudTheme', { tr('Sin fondo'), tr('Claro'), tr('Medianoche') }, 0,
+    tr('Medianoche: tarjetas casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'), true)
+  W.slider(tr('Tamaño'), 'hudScale', 0.6, 2.5, '%.1f', tr('Tamaño de todos los indicadores juntos.'), true)
+
+  W.section(tr('Acomodar los indicadores'))
+  if not cfg.hudFixed then
+    W.hint(tr('Con las ventanas sueltas, cada indicador se mueve arrastrando su ventana. Su tamaño y si se muestra se eligen igual aquí abajo.'))
+  else
+    W.label(tr('Disposición'), tr('En columna: uno debajo del otro. Libre: cada uno donde lo dejes.'))
+    if ui.radioButton(tr('En columna') .. '##hudLay1', not cfg.hudFree) then cfg.hudFree = false end
+    ui.sameLine(0, 10)
+    if ui.radioButton(tr('Libre') .. '##hudLay2', cfg.hudFree == true) then W.freeFromColumn() end
+    if not cfg.hudFree then
+      W.slider(tr('Altura'), 'hudY', 0, 85, '%.0f %%', tr('0 = arriba de la pantalla.'))
+      W.slider(tr('Posición horizontal'), 'hudX', 5, 95, '%.0f %%', tr('50 = al centro.'))
+    end
+    W.hint(tr('Arrastra los recuadros con el mouse: cada indicador se mueve en el juego al mismo tiempo. Si estaban en columna, pasan a libre.'))
+    W.layoutMap()
+  end
+
+  local name = tr('Estado')
+  for _, item in ipairs(FIXED_ORDER) do if item[1] == RS.sel then name = tr(item[3]) end end
+  ui.offsetCursorY(4)
+  ui.text(tr('Indicador elegido: %s', name))
+  if not cfg.hudFixed then
+    for _, item in ipairs(FIXED_ORDER) do
+      if ui.radioButton(tr(item[3]) .. '##hudPick' .. item[1], RS.sel == item[1]) then RS.sel = item[1] end
+      ui.sameLine(0, 10)
+    end
+    ui.dummy(vec2(1, 1))
+  end
+  local key = RS.sel
+  W.check(tr('Mostrar este indicador') .. '##hudOn' .. key, 'hud' .. key .. 'On')
+  W.slider(tr('Su tamaño'), 'hud' .. key .. 'S', 0.5, 2.5, '%.1f', nil, true)
+  if cfg.hudFixed and cfg.hudFree then
+    W.slider(tr('Posición horizontal'), 'hud' .. key .. 'X', 0, 100, '%.0f %%', tr('50 = al centro.'), true)
+    W.slider(tr('Altura'), 'hud' .. key .. 'Y', 0, 97, '%.0f %%', tr('0 = arriba de la pantalla.'), true)
+  end
+  if ui.button(tr('Restablecer este indicador')) then
+    cfg['hud' .. key .. 'S'] = 1
+    cfg['hud' .. key .. 'On'] = true
+    if RS.col[key] then cfg['hud' .. key .. 'X'], cfg['hud' .. key .. 'Y'] = RS.col[key].x, RS.col[key].y end
+  end
+
+  W.section(tr('Otros'))
   W.check(tr('Íconos de banderas y sanciones'), 'hudIcons')
   W.check(tr('Mostrar también el mensaje grande del juego'), 'showSystemMsg')
   if all then
@@ -4575,23 +4819,40 @@ function W.draw(dt)
   end)
 end
 
--- Colores de pestanas, casillas y barras en la paleta de la marca (tinta y azul) en vez del rojo del juego.
+-- Colores de pestanas, casillas, botones y barras (2.1, Medianoche): grises casi negros y el coral de la marca
+-- solo en lo elegido. Valen para las tres ventanas (Steward, clasificacion y ajustes).
 -- Si esta version del juego no conoce alguno de estos nombres, se salta.
-W.STYLE = {
-  { 'Tab', '#2a2b36' }, { 'TabHovered', '#3a3c4c' }, { 'TabActive', '#2f7fb0' },
-  { 'CheckMark', '#6cb7e0' }, { 'SliderGrab', '#41a1cf' }, { 'SliderGrabActive', '#6cb7e0' },
-  { 'FrameBg', '#262733' }, { 'FrameBgHovered', '#30323f' }, { 'FrameBgActive', '#383a4a' },
-  { 'Button', '#2a2b36' }, { 'ButtonHovered', '#363849' }, { 'ButtonActive', '#2f7fb0' },
-  { 'Header', '#2a2b36' }, { 'HeaderHovered', '#363849' }, { 'HeaderActive', '#2f7fb0' },
+RS.STYLE = {
+  { 'Tab', '#111214' }, { 'TabHovered', '#1b1c1e' }, { 'TabActive', '#452324' },
+  { 'CheckMark', '#ff6363' }, { 'SliderGrab', '#ff6363' }, { 'SliderGrabActive', '#ff8a8a' },
+  { 'FrameBg', '#111214' }, { 'FrameBgHovered', '#1b1c1e' }, { 'FrameBgActive', '#2f3031' },
+  { 'Button', '#1b1c1e' }, { 'ButtonHovered', '#2f3031' }, { 'ButtonActive', '#452324' },
+  { 'Header', '#1b1c1e' }, { 'HeaderHovered', '#2f3031' }, { 'HeaderActive', '#452324' },
 }
-function W.pushStyle()
+function RS.pushStyle()
   local n = 0
-  for _, st in ipairs(W.STYLE) do
+  for _, st in ipairs(RS.STYLE) do
     local id = ui.StyleColor and ui.StyleColor[st[1]]
     if id ~= nil and pcall(ui.pushStyleColor, id, hex(st[2])) then n = n + 1 end
   end
   return n
 end
+W.pushStyle = RS.pushStyle
+
+-- la ventana principal y la de clasificacion usan los mismos colores
+-- (dentro de una funcion: el archivo esta cerca del tope de 200 variables locales)
+function RS.styleWindows()
+  for _, name in ipairs({ 'windowMain', 'windowStandings' }) do
+    local draw = script[name]
+    script[name] = function (dt)
+      local pushed = RS.pushStyle()
+      local ok, err = pcall(draw, dt)
+      if pushed > 0 then pcall(ui.popStyleColor, pushed) end
+      if not ok then error(err, 0) end
+    end
+  end
+end
+RS.styleWindows()
 
 function script.windowSettings(dt)
   -- si algo de la ventana falla en esta version del juego, se muestra el error en vez de dejarla en blanco
@@ -4975,8 +5236,22 @@ EN['Dos filas'] = 'Two rows'
 EN['Estilo'] = 'Style'
 EN['Sin fondo'] = 'No background'
 EN['Claro'] = 'Light'
-EN['Oscuro'] = 'Dark'
-EN['Claro y oscuro: tarjetas con fondo. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Light and dark: cards with a background. No background: only icons and outlined text, straight over the track.'
+EN['Medianoche'] = 'Midnight'
+EN['Medianoche: tarjetas casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Midnight: near-black cards with a thin edge. Light: paper cards. No background: only icons and outlined text, straight over the track.'
+EN['Tamaño de todos los indicadores juntos.'] = 'Size of all the indicators together.'
+EN['Acomodar los indicadores'] = 'Arrange the indicators'
+EN['Con las ventanas sueltas, cada indicador se mueve arrastrando su ventana. Su tamaño y si se muestra se eligen igual aquí abajo.'] = 'With separate windows, you move each indicator by dragging its window. Its size and whether it shows are still chosen below.'
+EN['Disposición'] = 'Layout'
+EN['En columna'] = 'In a column'
+EN['Libre'] = 'Free'
+EN['En columna: uno debajo del otro. Libre: cada uno donde lo dejes.'] = 'In a column: one below the other. Free: each one where you leave it.'
+EN['Arrastra los recuadros con el mouse: cada indicador se mueve en el juego al mismo tiempo. Si estaban en columna, pasan a libre.'] = 'Drag the boxes with the mouse: each indicator moves in the game at the same time. If they were in a column, they switch to free.'
+EN['Indicador elegido: %s'] = 'Selected indicator: %s'
+EN['Estado'] = 'Status'
+EN['Mostrar este indicador'] = 'Show this indicator'
+EN['Su tamaño'] = 'Its size'
+EN['Restablecer este indicador'] = 'Reset this indicator'
+EN['Otros'] = 'Other'
 EN['La app anterior (Comisario) sigue instalada: borra la carpeta apps/lua/Comisario'] = 'The previous app (Comisario) is still installed: delete the apps/lua/Comisario folder'
 EN['Borra la carpeta apps/lua/Comisario'] = 'Delete the apps/lua/Comisario folder'
 EN['La app anterior sigue instalada y sancionaría dos veces'] = 'The previous app is still installed and would penalise twice'

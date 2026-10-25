@@ -19,7 +19,7 @@ Steward (antes se llamaba Comisario) es una app Lua para Assetto Corsa con Custo
 | `apps/lua/Steward/Steward.lua` | Toda la app (unas 5.000 líneas, en secciones numeradas). |
 | `apps/lua/Steward/manifest.ini` | Ventanas de la app y versión. |
 | `apps/lua/Steward/img/` | Íconos claros en 48, 80 y 160 px; `img/oscuro/` son los del estilo oscuro. |
-| `apps/lua/Steward/fonts/` | Fraunces e Inter (licencia OFL), que la app carga con DWrite. |
+| `apps/lua/Steward/fonts/` | Fraunces, Inter y Geist Mono (licencia OFL), que la app carga con DWrite. |
 | `apps/lua/Comisario/` | Aviso vacío que reemplaza la app vieja de quien venía de Comisario. Su `Comisario.lua` empieza con `-- STEWARD_STUB`; no borres esa marca, la app la usa para saber que no es la versión vieja. |
 | `servidor/comisario_servidor.lua` | Script online del servidor (versión 1.14). El servidor lo carga desde el gist. |
 | `test/` | Simulador de la API de CSP (`harness.lua`) y las pruebas. |
@@ -39,7 +39,7 @@ python3 test/run_online.py apps/lua/Steward/Steward.lua
 python3 test/run_server.py servidor/comisario_servidor.lua
 ```
 
-En la versión 2.0.0 dan: 484 traducciones sin problemas, 209/209, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
+En la versión 2.1.0 dan: 498 traducciones sin problemas, 216/216, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
 
 Para revisar el diseño sin abrir el juego:
 
@@ -54,7 +54,9 @@ Para revisar el diseño sin abrir el juego:
 - Los ajustes nuevos van en `DEFAULTS` con un valor que no cambie el comportamiento anterior. Si son parte del reglamento, también van en `RULE_KEYS`, y hay que subir el número de la clave `comisario:reglas:N` (hoy es 8), porque cambia el formato del mensaje online.
 - Las claves online siguen llamándose `comisario:*` a propósito, para no romper la compatibilidad con el script del servidor ni con versiones anteriores. No las renombres.
 - Los mensajes online viajan por el chat del servidor: menos de 175 bytes y al menos 200 ms entre uno y otro.
-- Los indicadores tienen tres estilos (`hudTheme`: 0 sin fondo, 1 claro, 2 oscuro) con sus colores en `HX.PAL`. Los títulos de las tarjetas van en Fraunces y en tipo oración (`HX.sentence`).
+- Los indicadores tienen tres estilos (`hudTheme`: 0 sin fondo, 1 claro, 2 Medianoche, que desde la 2.1 reemplaza al oscuro y es el de fábrica) con sus colores en `HX.PAL`. En claro los títulos van en Fraunces; en Medianoche, títulos en Inter y números y etiquetas en Geist Mono (`HX.font`). Siempre en tipo oración (`HX.sentence`).
+- Cada indicador se acomoda por separado (`FIXED_ORDER`: Status, Start, Msg, Pen). Sus ajustes son `hud<Clave>X`, `Y`, `S` (tamaño) y `On`; `hudFree` elige entre columna y libre. Para dibujar con el tamaño propio se usa `HX.es` dentro de `hs()`. El mapa para arrastrarlos está en `W.layoutMap`.
+- `RS` se declara arriba del archivo (junto a `RP`), así que se puede usar desde cualquier sección.
 - Los ajustes de quien venía de Comisario se copian una sola vez desde `Comisario.ini` (`RS.migrate`).
 - No copies código de otros plugins.
 

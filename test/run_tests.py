@@ -991,6 +991,80 @@ scenario('muro: un golpe de verdad en plena frenada si cuenta', '''
   return msgCount('GOLPE CONTRA EL MURO') == 1
 ''')
 
+scenario('muro: piano grueso en un F1 (rebote vertical fuerte con "colision") no es un golpe', '''
+  -- 250 km/h derecho; el auto salta y aterriza: la velocidad vertical cambia 4 m/s de un cuadro a otro
+  local c = place(0, 0, 250); run(0.3)
+  c.collisionDepth = 0.04
+  local vz, n = 250 / 3.6, 0
+  run(0.3, function ()
+    n = n + 1
+    c.velocity = vec3(0, (n % 2 == 0) and 2 or -2, vz); c.speedKmh = math.sqrt(vz * vz + 4) * 3.6
+  end)
+  c.collisionDepth = 0; c.velocity = vec3(0, 0, vz); c.speedKmh = 250; run(2)
+  return msgCount('MURO') == 0 and screen():find('0x') ~= nil
+''')
+
+scenario('muro: sobre un piano, un tiron horizontal corto que no le quita velocidad no es un golpe', '''
+  local c = place(0, 0, 250); run(0.3)
+  c.wheelSurface = 4; c.collisionDepth = 0.04
+  local vz = 250 / 3.6
+  -- dos cuadros de 8 g (el piso toca el piano) y despues recupera
+  run(2 / 60, function () vz = vz - 8 * 9.81 / 60; c.velocity = vec3(0, 0, vz); c.speedKmh = vz * 3.6 end)
+  run(0.2, function () vz = math.min(250 / 3.6, vz + 0.5); c.velocity = vec3(0, 0, vz); c.speedKmh = vz * 3.6 end)
+  c.collisionDepth = 0; c.wheelSurface = 0; run(2)
+  return msgCount('MURO') == 0
+''')
+
+scenario('muro: un golpe de verdad con las ruedas sobre el piano si cuenta', '''
+  local c = place(0, 0, 180); run(0.3)
+  c.wheelSurface = 4
+  wallHit(0, 180, 120); run(4)
+  return msgCount('GOLPE CONTRA EL MURO') == 1
+''')
+
+# ---------------------------------------------------------------- 2.1: cada indicador en su lugar
+scenario('acomodar: en modo libre cada indicador va donde se eligio, sin moverse los demas', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudTheme = 2
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local st0 = T.textPos['PRACTICA']
+  T.cfg.hudFree = true; T.cfg.hudStatusX = 50; T.cfg.hudStatusY = 22; T.cfg.hudMsgX = 20; T.cfg.hudMsgY = 60
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local m, st = T.textPos['Aviso del comisario'], T.textPos['PRACTICA']
+  -- pantalla de 1920 x 1080: el aviso arriba en y = 648, centrado cerca de x = 384
+  return m and m.y >= 648 and m.y < 700 and m.x < 450 and st and math.abs(st.y - st0.y) < 1 and not logText():find('ERROR')
+''')
+
+scenario('acomodar: un indicador oculto no se dibuja, ni en columna ni libre', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudPenOn = false
+  local a = hudScreen()
+  T.cfg.hudFree = true
+  local b = hudScreen()
+  return a:find('SANCION PENDIENTE') == nil and b:find('SANCION PENDIENTE') == nil and a:find('PRACTICA') ~= nil
+''')
+
+scenario('acomodar: el tamano propio agranda solo ese indicador', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudTheme = 2
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local a1, b1 = T.textPos['PRACTICA'], T.textPos['SOLO CUENTA']
+  local p1 = T.textPos['SANCION PENDIENTE']
+  T.cfg.hudStatusS = 2
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local a2, b2 = T.textPos['PRACTICA'], T.textPos['SOLO CUENTA']
+  return (b2.x - a2.x) > (b1.x - a1.x) * 1.8 and T.textPos['SANCION PENDIENTE'].y > p1.y
+''')
+
+scenario('acomodar: arrastrar un recuadro en el mapa de los ajustes mueve ese indicador y pasa a modo libre', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudTheme = 2
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local before = T.textPos['Aviso del comisario']
+  T.drag = { 'Msg', vec2(38, 0) }; script.windowSettings(0.016); T.drag = nil
+  script.fullscreenUI(0.016); script.fullscreenUI(0.016)
+  local after = T.textPos['Aviso del comisario']
+  -- el mapa mide 380 px de ancho: 38 px son el 10 % de la pantalla (192 px)
+  return T.cfg.hudFree == true and math.abs(after.x - before.x - 192) < 3 and math.abs(after.y - before.y) < 2
+    and T.cfg.hudStatusY > 20 and not logText():find('ERROR')
+''')
+
 scenario('los reglamentos anteriores vuelven al modo clasico despues de usar Real Penalty', '''
   preset('Real Penalty'); preset('Sanciones reales (FIA)')
   local c = place(0, 0, 150)
@@ -1391,8 +1465,8 @@ scenario('sin fondo, en un juego que no trae el contorno: se dibuja a mano con o
   return textsBg > 5 and T.calls.dwriteDrawText == textsBg * 9 and not logText():find('ERROR')
 ''', pre='NO_OUTLINE = true')
 
-scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija (desde la 2.0, con el estilo claro) y se cierran las ventanas sueltas', '''
-  local first = T.cfg.hudFixed == true and T.cfg.hudTheme == 1 and T.cfg.uiVersion == 4 and T.cfg.hudY == 22
+scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija (desde la 2.1, con el estilo Medianoche) y se cierran las ventanas sueltas', '''
+  local first = T.cfg.hudFixed == true and T.cfg.hudTheme == 2 and T.cfg.uiVersion == 5 and T.cfg.hudY == 22
     and T.windows.hud_msg == false and T.windows.hud_pen == false and T.windows.hud_status == false and T.windows.hud_start == false
   return first
 ''', pre='FRESH_INSTALL = true; STORED = { hudBg = true, hudFixed = false }')
@@ -1400,11 +1474,11 @@ scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija
 
 # ---------------------------------------------------------------- 1.5: posicion, nitidez, idioma y ajustes
 scenario('al actualizar desde la 1.4, la columna baja del 10% al 22% para no tapar el espejo virtual', '''
-  return T.cfg.hudY == 22 and T.cfg.uiVersion == 4 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
+  return T.cfg.hudY == 22 and T.cfg.uiVersion == 5 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 10, hudBg = false, hudFixed = true }')
 
 scenario('al actualizar, quien ya habia elegido otra altura la conserva', '''
-  return T.cfg.hudY == 40 and T.cfg.uiVersion == 4
+  return T.cfg.hudY == 40 and T.cfg.uiVersion == 5
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 40, hudBg = false, hudFixed = true }')
 
 scenario('nitidez: los textos y los iconos se dibujan siempre en pixeles enteros, con cualquier tamano', '''
@@ -1494,7 +1568,7 @@ scenario('tipo oracion: respeta tildes, siglas y palabras con numeros', '''
 scenario('ajustes de Comisario: la primera vez se copian a Steward, una sola vez', '''
   run(6)
   return T.cfg.migrated == true and T.cfg.hudY == 40 and T.cfg.adminKey == 'clave' and T.cfg.hudIcons == false
-    and T.cfg.hudTheme == 1 and logText():find('Ajustes de Comisario copiados') ~= nil
+    and T.cfg.hudTheme == 2 and logText():find('Ajustes de Comisario copiados') ~= nil
 ''', pre="FRESH_INSTALL = true; STORED = { uiVersion = 3 }; PRELOAD = { ['C:/logs/lua/app/Comisario.ini'] = '[__STORAGE]\\nhudY=40\\nadminKey=\"clave\"\\nhudIcons=0\\nhudTheme=2\\nnoExiste=5\\n' }")
 
 scenario('si la app Comisario sigue instalada, se avisa en pantalla; si es el reemplazo vacio, no', '''
@@ -1598,6 +1672,7 @@ scenario('ajustes: el tipo de sancion se elige en una lista desplegable', '''
 ''')
 
 scenario('ajustes: los deslizadores cambian su valor y los enteros quedan sin decimales', '''
+  T.cfg.hudFixed = true
   T.setCfg = { pitLimit = 60.4, tlMinTime = 0.7, hudY = 30.6 }; script.windowSettings(0.016); T.setCfg = nil
   T.cfg.setAll = true
   T.setCfg = { tlMinTime = 0.7 }; script.windowSettings(0.016); T.setCfg = nil

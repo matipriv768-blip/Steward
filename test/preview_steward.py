@@ -17,6 +17,7 @@ def font(name, size):
     if name is True: path = FDIR + 'Inter-600.ttf'
     elif name is False or name is None: path = FDIR + 'Inter-400.ttf'
     elif 'Fraunces' in name or 'Georgia' in name: path = FDIR + 'Fraunces-400.ttf'
+    elif 'Geist Mono' in name or 'Consolas' in name: path = FDIR + 'GeistMono-500.ttf'
     elif 'SemiBold' in name: path = FDIR + 'Inter-600.ttf'
     elif 'Bold' in name: path = FDIR + 'Inter-700.ttf'
     else: path = FDIR + 'Inter-400.ttf'
@@ -47,7 +48,7 @@ def make(scene_lua, width, height, placements, bg):
     ui.dwriteDrawText = lambda text, size, p, c: state['ops'].append(('text', text, size, p.x, p.y, col(c), state['bold'], state.get('outline', False)))
     ui.beginOutline = lambda: state.__setitem__('outline', True)
     ui.endOutline = lambda c, *a: state.__setitem__('outline', False)
-    lua.execute("for _, f in ipairs({ 'img/aviso.png', 'img/48/aviso.png', 'img/80/aviso.png', 'img/160/aviso.png', 'img/oscuro/aviso.png', 'fonts/Inter-400.ttf', 'fonts/Fraunces-400.ttf' }) do T.files['C:/logs/' .. f] = 'x' end")
+    lua.execute("for _, f in ipairs({ 'img/aviso.png', 'img/48/aviso.png', 'img/80/aviso.png', 'img/160/aviso.png', 'img/oscuro/aviso.png', 'fonts/Inter-400.ttf', 'fonts/Fraunces-400.ttf', 'fonts/GeistMono-500.ttf' }) do T.files['C:/logs/' .. f] = 'x' end")
     lua.execute(scene_lua)
     img = Image.new('RGBA', (width * SS, height * SS))
     d0 = ImageDraw.Draw(img)
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     # con HUD_GRANDE=1 sale al doble de resolucion (para el video)
     out = sys.argv[1]
     LANG_ID = 2 if (len(sys.argv) > 2 and sys.argv[2] == 'en') else 1
-    THEME = {'claro': 1, 'oscuro': 2, 'sinfondo': 0}[sys.argv[3] if len(sys.argv) > 3 else 'claro']
+    THEME = {'claro': 1, 'oscuro': 2, 'medianoche': 2, 'sinfondo': 0}[sys.argv[3] if len(sys.argv) > 3 else 'claro']
     BG = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != '-' else True
     PICK = [int(x) for x in sys.argv[5].split(',')] if len(sys.argv) > 5 else None
     W = 1000

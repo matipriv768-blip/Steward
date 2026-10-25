@@ -31,7 +31,7 @@ AJUSTES E IDIOMA
   finas en cada pestana.
 - Pestanas: Inicio (resumen del reglamento, online), Largada, Pista (limites y
   pits), Contactos, Sanciones (duraciones y puntos de incidente), Banderas,
-  Pantalla (estilo claro, oscuro o sin fondo, tamano y lugar de los indicadores) y Mas (IA, registro, pruebas).
+  Pantalla (estilo Medianoche, claro o sin fondo; tamano, lugar y visibilidad de cada indicador) y Mas (IA, registro, pruebas).
 
 Instalacion manual: copia la carpeta "apps" del zip dentro de la carpeta
 "assettocorsa" (la del juego en Steam).
@@ -153,7 +153,9 @@ La fuerza se mide con la diferencia de velocidad entre los dos autos:
 - Contacto: entre 10 y 30 km/h.
 - Choque fuerte: mas de 30 km/h.
 Un golpe contra el muro solo cuenta si el auto pierde 15 km/h o mas de golpe.
-Salir al pasto o pisar un piano no cuenta como golpe.
+Salir al pasto o pisar un piano no cuenta como golpe. Desde la 2.1 solo se mide
+la velocidad horizontal: el salto de un auto bajo y duro (un F1, por ejemplo)
+al pasar por un piano grueso ya no se confunde con un golpe.
 El responsable es quien alcanza por detras yendo mas rapido. Lado a lado es
 incidente de carrera y no se sanciona. Si el golpeado pierde el auto o se sale
 de pista en los 3 segundos siguientes, el contacto pasa a choque fuerte.
@@ -217,14 +219,21 @@ Pantalla.
 INDICADORES EN PANTALLA
 Son cuatro: Estado (como vas), Largada (velocidad contra el limite y semaforo
 verde), Aviso (que paso) y Sancion (que tienes que hacer).
-- Interfaz fija (por defecto): los cuatro van en una columna centrada en un
-  lugar fijo de la pantalla. No son ventanas: no se mueven ni se cierran por
-  accidente. El lugar se elige una vez en engranaje > Pantalla, con las barras
-  "Altura" y "Posicion horizontal". Por defecto queda debajo del espejo
-  virtual. "Mostrar un ejemplo para acomodarla" los deja todos a la vista.
-- Sin fondo (por defecto): solo el icono y las letras, con un contorno oscuro
-  para que se lean sobre la pista. Marca "Fondo oscuro detras del texto" si
-  prefieres los carteles con rectangulo.
+- Interfaz fija (por defecto): no son ventanas, asi que no se cierran por
+  accidente. Se acomodan en engranaje > Pantalla > Acomodar los indicadores:
+  * En columna: los cuatro uno debajo del otro, con las barras "Altura" y
+    "Posicion horizontal". Por defecto queda debajo del espejo virtual.
+  * Libre: cada uno donde quieras. En el mapa de la pantalla arrastra el
+    recuadro de cada indicador con el mouse; en el juego se mueve al mismo
+    tiempo. Al arrastrar uno, pasan a libre solos.
+  * Haz clic en un recuadro para elegir ese indicador: puedes ocultarlo
+    ("Mostrar este indicador"), cambiar solo su tamano ("Su tamano") o
+    dejarlo como venia ("Restablecer este indicador").
+  "Mostrar un ejemplo para acomodarla" los deja todos a la vista, con su
+  nombre y un marco (el elegido, en coral).
+- Estilos: Medianoche (de fabrica desde la 2.1: tarjetas casi negras con
+  borde fino), Claro (tarjetas de papel) y Sin fondo (solo iconos y letras
+  con contorno, directo sobre la pista).
 - Si apagas la interfaz fija (con "Mostrar todas las opciones" marcado), cada
   indicador vuelve a ser una ventana suelta que se mueve con el mouse (boton
   "Abrir todos los indicadores").

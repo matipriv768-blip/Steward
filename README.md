@@ -178,7 +178,7 @@ Más detalles en [`servidor/INSTRUCCIONES_SERVIDOR.txt`](servidor/INSTRUCCIONES_
 El engranaje de la ventana Steward abre los ajustes:
 
 - Arriba: idioma, **Steward activo** y **Mostrar todas las opciones** (sin marcar se ven solo las principales).
-- Pestañas: **Inicio** (resumen del reglamento y clave de administrador), **Largada**, **Pista** (límites y pits), **Contactos**, **Sanciones** (duraciones y puntos de incidente), **Banderas**, **Pantalla** (estilo claro, oscuro o sin fondo, tamaño y lugar de los indicadores) y **Más** (IA, registro y botones de prueba).
+- Pestañas: **Inicio** (resumen del reglamento y clave de administrador), **Largada**, **Pista** (límites y pits), **Contactos**, **Sanciones** (duraciones y puntos de incidente), **Banderas**, **Pantalla** (estilo Medianoche, claro o sin fondo; tamaño, lugar y visibilidad de cada indicador, con un mapa para arrastrarlos) y **Más** (IA, registro y botones de prueba).
 - Donde hay un **(?)**, la explicación aparece al pasar el mouse por encima.
 
 ![Ventana de ajustes](docs/ajustes.png)

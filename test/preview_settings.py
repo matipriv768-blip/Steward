@@ -53,6 +53,7 @@ class Panel:
         self.x, self.y = PAD, PAD
         self.line_h = 0
         self.last = (PAD, PAD, PAD, PAD)
+        self.pending_line_h = 0
         self.align = False
         self.next_w = None
         self.colors = []
@@ -90,7 +91,9 @@ class Panel:
             self.x = x2 + (8 if spacing is None or spacing < 0 else spacing)
 
     def color(self):
-        return self.colors[-1] if self.colors else COL_TEXT
+        for c in reversed(self.colors):
+            if c is not None: return c
+        return COL_TEXT
 
     def visible(self):
         return self.in_tab
@@ -131,7 +134,7 @@ class Panel:
 
     def checkbox(self, label, value):
         if self.visible():
-            label = str(label)
+            label = str(label).split('##')[0]
             x, y = self.place(FRAME_H + 6 + tw(label), FRAME_H, label[:30])
             self.ops.append(('check', x, y, bool(value)))
             self.ops.append(('text', x + FRAME_H + 6, y + 3, label, COL_TEXT, False))
@@ -251,6 +254,16 @@ class Panel:
                 _, x, y, text = op
                 draw_text(x, y, text, (255, 255, 255, 255), True)
                 d.line([S(x), S(y + TEXT_H + 3), S(WIN_W - PAD), S(y + TEXT_H + 3)], fill=(255, 255, 255, 50), width=S(1))
+            elif kind == 'rrect':
+                _, x1, y1, x2, y2, c, r = op
+                d.rounded_rectangle([S(x1), S(y1), S(x2), S(y2)], S(r), fill=c)
+            elif kind == 'rbox':
+                _, x1, y1, x2, y2, c, r = op
+                d.rounded_rectangle([S(x1), S(y1), S(x2), S(y2)], S(r), outline=c, width=S(1))
+            elif kind == 'rtext':
+                _, x, y, t, c, size = op
+                mono = ImageFont.truetype('apps/lua/Steward/fonts/GeistMono-500.ttf', int(size * SS))
+                d.text((S(x), S(y)), t, font=mono, fill=c)
             elif kind == 'bullet':
                 _, x, y = op
                 d.ellipse([S(x + 3), S(y + 6), S(x + 8), S(y + 11)], fill=(200, 200, 200, 255))
@@ -295,12 +308,33 @@ def build(lang, show_all, tab, setup=''):
     ui.inputText = lambda label, text, flags=None: p.input(label, text, flags)
     ui.tabBar = lambda id_, fn: p.tab_bar(id_, fn)
     ui.tabItem = lambda label, fn: p.tab_item(label, fn)
-    ui.pushStyleColor = lambda which, c: p.colors.append(rgba(c))
-    ui.popStyleColor = lambda *a: p.colors.pop() if p.colors else None
+    # solo el color del texto cambia lo que se ve en esta vista; los demas se guardan para poder sacarlos
+    ui.pushStyleColor = lambda which, c: p.colors.append(rgba(c) if which == 0 else None)
+    def pop(n=1):
+        for _ in range(int(n or 1)):
+            if p.colors: p.colors.pop()
+    ui.popStyleColor = pop
     ui.measureText = lambda t, *a: g.vec2(tw(str(t)), TEXT_H)
     ui.itemHovered = lambda *a: False
     ui.setTooltip = lambda t: None
     ui.separator = lambda: setattr(p, 'y', p.y + 4)
+    # 2.1: mapa para acomodar los indicadores (dibujo libre dentro de la ventana)
+    def set_cursor(v):
+        p.x, p.y = v.x, v.y
+    def raw(op):
+        if p.visible():
+            p.ops.append(op)
+    ui.getCursor = lambda: g.vec2(p.x, p.y)
+    ui.setCursor = set_cursor
+    ui.availableSpaceX = lambda: WIN_W - PAD - p.x
+    ui.invisibleButton = lambda *a: None
+    ui.itemActive = lambda *a: False
+    ui.itemClicked = lambda *a: False
+    ui.pushDWriteFont = lambda *a: None
+    ui.popDWriteFont = lambda *a: None
+    ui.drawRectFilled = lambda a, b, c, r=0, *x: raw(('rrect', a.x, a.y, b.x, b.y, rgba(c), r or 0))
+    ui.drawRect = lambda a, b, c, r=0, *x: raw(('rbox', a.x, a.y, b.x, b.y, rgba(c), r or 0))
+    ui.dwriteDrawText = lambda t, size, pos, c: raw(('rtext', pos.x, pos.y, str(t), rgba(c), size))
     if setup:
         lua.execute(setup)
     lua.execute('script.update(0.016)')

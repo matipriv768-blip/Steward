@@ -53,7 +53,7 @@ local function newCar(i)
   c.wheels = setmetatable({}, { __index = function (_, k)
     if T.noWheels or (k ~= 0 and k ~= 1) then return nil end
     local p = c.position
-    return { position = vec3(p.x + (k == 0 and -0.8 or 0.8), p.y, p.z + 1.3) }
+    return { position = vec3(p.x + (k == 0 and -0.8 or 0.8), p.y, p.z + 1.3), surfaceExtendedType = c.wheelSurface or 0 }
   end })
   return c
 end
@@ -69,6 +69,7 @@ T.sessionCallbacks = {}
 
 ac = {
   SessionType = { Undefined = 0, Practice = 1, Qualify = 2, Race = 3, Hotlap = 4 },
+  SurfaceExtendedType = { Base = 0, Grass = 2, Gravel = 3, Kerb = 4 },
   FolderID = { Logs = 7, ContentTracks = 15 },
   getTrackLayout = function () return T.layout end,
   setWindowOpen = function (id, open) T.windows[id] = open end,
@@ -235,6 +236,9 @@ local known = {
   -- 2.0: titulo de la ventana con la letra de la marca
   dwriteText = 1,
 }
+-- 2.1: mapa para acomodar los indicadores (uso comprobado en las apps oficiales de CSP: AISplineEditor,
+-- WebBrowser, android_auto). T.drag = { 'Msg', vec2(dx, dy) } simula arrastrar el recuadro de ese indicador.
+T.lastButton = nil
 ui = setmetatable({
   Font = { Small = 1, Title = 6 },
   getCursor = function () return vec2(0, 0) end,
@@ -298,6 +302,10 @@ ui = setmetatable({
     return T.clickButton == fold(label)
   end,
   tabBar = function (id, fn) fn() end,
+  invisibleButton = function (id) T.lastButton = id; T.buttons = T.buttons or {}; T.buttons[#T.buttons + 1] = id end,
+  itemActive = function () return T.drag ~= nil and T.lastButton == '##hudbox' .. T.drag[1] end,
+  itemClicked = function () return T.drag ~= nil and T.lastButton == '##hudbox' .. T.drag[1] end,
+  mouseDelta = function () return T.drag and T.drag[2] or vec2(0, 0) end,
   tabItem = function (label, fn)
     T.labels[#T.labels + 1] = fold(label)
     fn()
