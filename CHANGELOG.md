@@ -1,7 +1,7 @@
 # Cambios
 
 ## 2.2.0 — Estilo Cristal
-- Estilo nuevo **Cristal**, de fábrica: tarjetas azul noche translúcidas con esquinas bien redondeadas, un brillo azul que baja desde arriba como vidrio iluminado, borde fino azulado, todo en Inter, el rombo de la marca en azul eléctrico y barras de progreso con franjas diagonales.
+- Estilo nuevo **Cristal**, de fábrica: tarjetas azul noche translúcidas con esquinas bien redondeadas, un brillo azul que baja desde arriba como vidrio iluminado, borde fino azulado, letra Saira (cuadrada y ancha, al estilo de las transmisiones y juegos de F1; la letra oficial de la F1 es privada y no se puede incluir), el rombo de la marca en azul eléctrico y barras de progreso con franjas diagonales.
 - Las ventanas (Steward, clasificación y ajustes) y el mapa para acomodar los indicadores toman los colores del estilo: azul con Cristal, coral con los demás.
 - Medianoche, Claro y Sin fondo siguen disponibles en Pantalla > Estilo. Al actualizar, todos pasan una vez a Cristal.
 - Sin cambios en las reglas ni en el script del servidor (sigue en 1.14).

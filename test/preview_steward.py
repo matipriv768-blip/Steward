@@ -18,6 +18,9 @@ def font(name, size):
     elif name is False or name is None: path = FDIR + 'Inter-400.ttf'
     elif 'Fraunces' in name or 'Georgia' in name: path = FDIR + 'Fraunces-400.ttf'
     elif 'Geist Mono' in name or 'Consolas' in name: path = FDIR + 'GeistMono-500.ttf'
+    elif 'Saira Expanded' in name: path = FDIR + 'SairaExpanded-700.ttf'
+    elif 'Saira' in name and 'SemiBold' in name: path = FDIR + 'Saira-600.ttf'
+    elif 'Saira' in name: path = FDIR + 'Saira-400.ttf'
     elif 'SemiBold' in name: path = FDIR + 'Inter-600.ttf'
     elif 'Bold' in name: path = FDIR + 'Inter-700.ttf'
     else: path = FDIR + 'Inter-400.ttf'
@@ -50,7 +53,7 @@ def make(scene_lua, width, height, placements, bg):
     ui.dwriteDrawText = lambda text, size, p, c: state['ops'].append(('text', text, size, p.x, p.y, col(c), state['bold'], state.get('outline', False)))
     ui.beginOutline = lambda: state.__setitem__('outline', True)
     ui.endOutline = lambda c, *a: state.__setitem__('outline', False)
-    lua.execute("for _, f in ipairs({ 'img/aviso.png', 'img/48/aviso.png', 'img/80/aviso.png', 'img/160/aviso.png', 'img/oscuro/aviso.png', 'fonts/Inter-400.ttf', 'fonts/Fraunces-400.ttf', 'fonts/GeistMono-500.ttf' }) do T.files['C:/logs/' .. f] = 'x' end")
+    lua.execute("for _, f in ipairs({ 'img/aviso.png', 'img/48/aviso.png', 'img/80/aviso.png', 'img/160/aviso.png', 'img/oscuro/aviso.png', 'fonts/Inter-400.ttf', 'fonts/Fraunces-400.ttf', 'fonts/GeistMono-500.ttf', 'fonts/Saira-400.ttf', 'fonts/Saira-600.ttf', 'fonts/SairaExpanded-700.ttf' }) do T.files['C:/logs/' .. f] = 'x' end")
     lua.execute(scene_lua)
     img = Image.new('RGBA', (width * SS, height * SS))
     d0 = ImageDraw.Draw(img)

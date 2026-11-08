@@ -3339,16 +3339,24 @@ function HX.initFonts()
   end
   -- monoespaciada del estilo Medianoche (Geist Mono, licencia OFL); sin el archivo, la de Windows
   HX.F.mono = (here and io.fileExists(here .. '/fonts/GeistMono-500.ttf')) and 'Geist Mono:./fonts;Weight=Medium' or 'Consolas;Weight=Bold'
+  -- letra de Cristal (2.2): Saira (licencia OFL), cuadrada y ancha como la de las transmisiones y juegos de F1.
+  -- La oficial de la F1 es privada y no se puede incluir. Sin los archivos, se usa Inter.
+  if here and io.fileExists(here .. '/fonts/SairaExpanded-700.ttf') then
+    HX.F.race = { reg = 'Saira:./fonts;Weight=Regular', bold = 'Saira:./fonts;Weight=SemiBold', wide = 'Saira Expanded:./fonts;Weight=Bold' }
+  else
+    HX.F.race = { reg = HX.F.reg, bold = HX.F.bold, wide = HX.F.bold }
+  end
 end
 
 -- bold: true = etiqueta en negrita, false = texto normal, 'serif' = titulo, 'num' = numero grande.
 -- Medianoche: titulos en Inter normal (grandes, sin negrita), etiquetas y numeros en monoespaciada.
 function HX.font(bold)
   HX.initFonts()
-  -- Cristal: todo en Inter; titulos, etiquetas y numeros en seminegrita
+  -- Cristal: Saira. Titulos y numeros grandes en la version ancha y negrita, etiquetas en seminegrita
   if HX.theme == 3 then
-    if bold == 'serif' or bold == 'num' or bold == true then return HX.F.bold end
-    return HX.F.reg
+    if bold == 'serif' or bold == 'num' then return HX.F.race.wide end
+    if bold == true then return HX.F.race.bold end
+    return HX.F.race.reg
   end
   if HX.theme == 2 then
     if bold == 'serif' then return HX.F.reg end
@@ -4129,7 +4137,7 @@ function RS.title()
     ui.drawTriangleFilled(vec2(cx, cy - r), vec2(cx + r, cy), vec2(cx - r, cy), brand)
     ui.drawTriangleFilled(vec2(cx - r, cy), vec2(cx + r, cy), vec2(cx, cy + r), brand)
     ui.setCursor(vec2(p.x + 18, p.y))
-    ui.pushDWriteFont(HX.F.bold)
+    ui.pushDWriteFont(cfg.hudTheme == 3 and HX.F.race.wide or HX.F.bold)
     ui.dwriteText('Steward', 21, rgbm(1, 1, 1, 1))
     ui.popDWriteFont()
     return
@@ -4746,7 +4754,7 @@ function W.layoutMap()
     local on = cfg['hud' .. key .. 'On'] ~= false
     ui.drawRectFilled(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and tint.sel or tint.hover, on and 1 or 0.45), 4)
     ui.drawRect(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and tint.accent or tint.line, on and 1 or 0.5), 4, nil, 1)
-    ui.pushDWriteFont(cfg.hudTheme == 3 and HX.F.bold or HX.F.mono)
+    ui.pushDWriteFont(cfg.hudTheme == 3 and HX.F.race.bold or HX.F.mono)
     ui.dwriteDrawText(string.upper(tr(item[3])), 9, vec2(bx + 4, by + math.max(1, bh / 2 - 6)), hex(on and tint.text or tint.dim))
     ui.popDWriteFont()
   end
