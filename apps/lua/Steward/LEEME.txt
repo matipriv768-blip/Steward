@@ -231,8 +231,8 @@ verde), Aviso (que paso) y Sancion (que tienes que hacer).
     dejarlo como venia ("Restablecer este indicador").
   "Mostrar un ejemplo para acomodarla" los deja todos a la vista, con su
   nombre y un marco (el elegido, en coral).
-- Estilos: Cristal (de fabrica desde la 2.2: tarjetas azul noche
-  translucidas con un brillo azul y letra Saira, parecida a la de la F1),
+- Estilos: Cristal (de fabrica desde la 2.2: tarjetas de vidrio
+  oscuro translucidas con un brillo rojo y letra Saira, parecida a la de la F1),
   Medianoche (casi negras con borde fino),
   Claro (tarjetas de papel) y Sin fondo (solo iconos y letras con contorno,
   directo sobre la pista).

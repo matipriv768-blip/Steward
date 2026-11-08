@@ -3278,12 +3278,13 @@ HX.PAL = {
     head = hex('#111214', 0.96), well = hex('#111214', 0.98), border = rgbm(1, 1, 1, 0.13), shine = rgbm(1, 1, 1, 0.07),
     brand = hex('#ff6363'),
     green = hex('#59d499'), yellow = hex('#ffc531'), orange = hex('#ff8c4a'), red = hex('#ff6363'), blue = hex('#56c2ff'), purple = hex('#b48cff') },
-  -- 2.2: Cristal. Azul noche translucido, esquinas bien redondeadas, un brillo azul que baja desde arriba
-  -- (como una tarjeta de vidrio iluminada), azul electrico como color de marca y barras con franjas diagonales.
-  [3] = { ink = hex('#ffffff'), soft = hex('#a3acd0'), muted = hex('#6f79a1'), line = hex('#27305a'), bg = hex('#101833', 0.9),
-    head = hex('#172048', 0.94), well = hex('#19224d', 0.96), border = hex('#8aa4ff', 0.22), shine = rgbm(1, 1, 1, 0.12),
-    glow = hex('#3d6bff'), stripe = rgbm(1, 1, 1, 0.22), brand = hex('#5b8cff'), sel = hex('#3d6bff'),
-    green = hex('#4fd18b'), yellow = hex('#ffcc3d'), orange = hex('#ff9a4d'), red = hex('#ff5c6c'), blue = hex('#6f9bff'), purple = hex('#a98bff') },
+  -- 2.2: Cristal. Vidrio oscuro translucido, esquinas bien redondeadas, un brillo rojo que baja desde arriba
+  -- (como una tarjeta de vidrio iluminada), rojo F1 como color de marca y barras con franjas diagonales.
+  -- (2.2: el brillo y la marca pasaron de azul a rojo, el rojo de la F1)
+  [3] = { ink = hex('#ffffff'), soft = hex('#c8b0b5'), muted = hex('#8e7279'), line = hex('#3d1f27'), bg = hex('#160b0f', 0.9),
+    head = hex('#22111a', 0.94), well = hex('#28121a', 0.96), border = hex('#ff7a7a', 0.22), shine = rgbm(1, 1, 1, 0.12),
+    glow = hex('#e10600'), stripe = rgbm(1, 1, 1, 0.22), brand = hex('#ff3b30'), sel = hex('#e10600'),
+    green = hex('#4fd18b'), yellow = hex('#ffcc3d'), orange = hex('#ff9a4d'), red = hex('#ff5468'), blue = hex('#6f9bff'), purple = hex('#b98bff') },
 }
 HX.c = HX.PAL[1]
 HX.solid = true
@@ -3443,7 +3444,7 @@ local function panel(x, y, w, h, alpha, color, radius)
   local a = alpha or 1
   if HX.dark then
     -- Medianoche: sin sombra; un borde de un pixel y una linea de brillo arriba, por dentro
-    -- Cristal: lo mismo, mas redondeado y con un brillo azul que se desvanece hacia abajo
+    -- Cristal: lo mismo, mas redondeado y con un brillo rojo que se desvanece hacia abajo
     local r = radius or hs(HX.theme == 3 and 18 or 14)
     ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(color or HX.c.bg, a), r)
     if HX.theme == 3 then
@@ -4117,11 +4118,11 @@ function RS.frame(key, name)
   ui.popDWriteFont()
 end
 
--- Colores de las ventanas segun el estilo: Cristal en azul, el resto con el coral de Medianoche
+-- Colores de las ventanas segun el estilo: Cristal en rojo F1, el resto con el coral de Medianoche
 function RS.tint()
   if cfg.hudTheme == 3 then
-    return { accent = '#5b8cff', accent2 = '#86a8ff', sel = '#22336e', base = '#141c3a', hover = '#1c2650', active = '#27336a',
-      line = '#2c3870', dim = '#6f79a1', text = '#e8ecff' }
+    return { accent = '#ff3b30', accent2 = '#ff7068', sel = '#5c1a1f', base = '#1a0e13', hover = '#26141b', active = '#331b23',
+      line = '#4d262f', dim = '#8e7279', text = '#ffecee' }
   end
   return { accent = '#ff6363', accent2 = '#ff8a8a', sel = '#452324', base = '#111214', hover = '#1b1c1e', active = '#2f3031',
     line = '#454647', dim = '#6a6b6c', text = '#e6e6e6' }
@@ -4719,7 +4720,7 @@ function W.layoutMap()
   local mw = math.floor(math.min(ui.availableSpaceX(), 520))
   local mh = math.floor(mw * sh / sw)
   local p = ui.getCursor()
-  ui.drawRectFilled(p, vec2(p.x + mw, p.y + mh), hex(cfg.hudTheme == 3 and '#0b1128' or '#040506'), 8)
+  ui.drawRectFilled(p, vec2(p.x + mw, p.y + mh), hex(cfg.hudTheme == 3 and '#12080c' or '#040506'), 8)
   ui.drawRect(p, vec2(p.x + mw, p.y + mh), hex(RS.tint().line), 8, nil, 1)
   local k = mw / sw
   local tint = RS.tint()
@@ -4765,7 +4766,7 @@ end
 function W.tabScreen(all)
   W.check(tr('Mostrar un ejemplo para acomodarla'), 'hudPlace', tr('Deja a la vista todos los indicadores mientras eliges el lugar y el tamaño.'))
   W.radio(tr('Estilo'), 'hudTheme', { tr('Sin fondo'), tr('Claro'), tr('Medianoche'), tr('Cristal') }, 0,
-    tr('Cristal: tarjetas azul noche translúcidas con un brillo azul. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'), true)
+    tr('Cristal: tarjetas de vidrio oscuro translúcidas con un brillo rojo. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'), true)
   W.slider(tr('Tamaño'), 'hudScale', 0.6, 2.5, '%.1f', tr('Tamaño de todos los indicadores juntos.'), true)
 
   W.section(tr('Acomodar los indicadores'))
@@ -5319,7 +5320,7 @@ EN['Sin fondo'] = 'No background'
 EN['Claro'] = 'Light'
 EN['Medianoche'] = 'Midnight'
 EN['Cristal'] = 'Glass'
-EN['Cristal: tarjetas azul noche translúcidas con un brillo azul. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Glass: translucent night-blue cards with a blue glow. Midnight: near-black with a thin edge. Light: paper cards. No background: only icons and outlined text, straight over the track.'
+EN['Cristal: tarjetas de vidrio oscuro translúcidas con un brillo rojo. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Glass: translucent dark glass cards with a red glow. Midnight: near-black with a thin edge. Light: paper cards. No background: only icons and outlined text, straight over the track.'
 EN['Tamaño de todos los indicadores juntos.'] = 'Size of all the indicators together.'
 EN['Acomodar los indicadores'] = 'Arrange the indicators'
 EN['Con las ventanas sueltas, cada indicador se mueve arrastrando su ventana. Su tamaño y si se muestra se eligen igual aquí abajo.'] = 'With separate windows, you move each indicator by dragging its window. Its size and whether it shows are still chosen below.'
