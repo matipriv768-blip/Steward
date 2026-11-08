@@ -43,6 +43,8 @@ def make(scene_lua, width, height, placements, bg):
     ui.drawRectFilled = lambda p1, p2, c, r=None: state['ops'].append(('rect', p1.x, p1.y, p2.x, p2.y, col(c), r or 0))
     ui.drawRect = lambda p1, p2, c, r=None, fl=None, th=None: state['ops'].append(('box', p1.x, p1.y, p2.x, p2.y, col(c), r or 0))
     ui.drawTriangleFilled = lambda a, b, c3, c: state['ops'].append(('tri', a.x, a.y, b.x, b.y, c3.x, c3.y, col(c)))
+    ui.pushClipRect = lambda p1, p2, *a: state['ops'].append(('clip', p1.x, p1.y, p2.x, p2.y))
+    ui.popClipRect = lambda: state['ops'].append(('unclip',))
     ui.drawCircleFilled = lambda p, r, c, n=None: state['ops'].append(('circle', p.x, p.y, r, col(c)))
     ui.drawImage = lambda path, p1, p2, c=None, *a: state['ops'].append(('img', str(path), p1.x, p1.y, p2.x, p2.y))
     ui.dwriteDrawText = lambda text, size, p, c: state['ops'].append(('text', text, size, p.x, p.y, col(c), state['bold'], state.get('outline', False)))
@@ -87,9 +89,24 @@ def make(scene_lua, width, height, placements, bg):
         getattr(g.script, fn)(0.016)
         layer = Image.new('RGBA', img.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
+        clip = None
         for op in state['ops']:
             k = op[0]
-            if k == 'rect':
+            if k == 'clip':
+                clip = tuple(int(v * SS) for v in op[1:])
+            elif k == 'unclip':
+                clip = None
+            elif k == 'tri' and (clip or op[7][3] < 255):
+                # translucida o recortada: se dibuja aparte y se mezcla
+                _, ax, ay, bx, by, cx, cy, c = op
+                tmp = Image.new('RGBA', img.size, (0, 0, 0, 0))
+                ImageDraw.Draw(tmp).polygon([(ax * SS, ay * SS), (bx * SS, by * SS), (cx * SS, cy * SS)], fill=c)
+                if clip:
+                    cut = Image.new('RGBA', img.size, (0, 0, 0, 0))
+                    cut.paste(tmp.crop(clip), clip[:2])
+                    tmp = cut
+                layer = Image.alpha_composite(layer, tmp); d = ImageDraw.Draw(layer)
+            elif k == 'rect':
                 _, x1, y1, x2, y2, c, r = op
                 if x2 > x1 and y2 > y1:
                     tmp = Image.new('RGBA', img.size, (0, 0, 0, 0))
@@ -133,7 +150,7 @@ if __name__ == '__main__':
     # con HUD_GRANDE=1 sale al doble de resolucion (para el video)
     out = sys.argv[1]
     LANG_ID = 2 if (len(sys.argv) > 2 and sys.argv[2] == 'en') else 1
-    THEME = {'claro': 1, 'oscuro': 2, 'medianoche': 2, 'sinfondo': 0}[sys.argv[3] if len(sys.argv) > 3 else 'claro']
+    THEME = {'claro': 1, 'oscuro': 2, 'medianoche': 2, 'cristal': 3, 'sinfondo': 0}[sys.argv[3] if len(sys.argv) > 3 else 'claro']
     BG = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != '-' else True
     PICK = [int(x) for x in sys.argv[5].split(',')] if len(sys.argv) > 5 else None
     W = 1000

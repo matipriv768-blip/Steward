@@ -1,7 +1,7 @@
 --[[
   STEWARD  -  comisario de carrera para Assetto Corsa (app Lua de Custom Shaders Patch)
   Antes se llamaba Comisario.
-  Version 2.1.0  -  offline (contra la IA) y online (con amigos que tengan la app)
+  Version 2.2.0  -  offline (contra la IA) y online (con amigos que tengan la app)
 
   Que hace:
     1. Limites de pista, velocidad en pits y salida en falso.
@@ -23,7 +23,7 @@
   Codigo propio, escrito desde cero. No usa codigo ni archivos de otros plugins.
 ]]
 
-local VERSION = '2.1.0'
+local VERSION = '2.2.0'
 
 -- ---------------------------------------------------------------------------
 -- 1. AJUSTES (se guardan solos entre sesiones)
@@ -127,7 +127,7 @@ local DEFAULTS = {
   -- indicadores en pantalla
   hudScale = 1,            -- tamano de los indicadores
   hudBg = false,           -- (hasta la 1.6) fondo oscuro detras del texto; desde la 2.0 manda hudTheme
-  hudTheme = 2,            -- estilo de los indicadores: 0 = sin fondo, 1 = claro, 2 = medianoche (hasta la 2.0, oscuro)
+  hudTheme = 3,            -- estilo de los indicadores: 0 = sin fondo, 1 = claro, 2 = medianoche (hasta la 2.0, oscuro), 3 = cristal
   migrated = false,        -- ya se copiaron los ajustes de la app anterior (Comisario)
   hudFixed = true,         -- interfaz fija: los indicadores van en una columna en un lugar fijo de la pantalla
   hudX = 50,               -- interfaz fija: centro de la columna, en % del ancho de la pantalla
@@ -2992,6 +2992,12 @@ if stored.uiVersion < 5 then
   stored.hudTheme = 2
 end
 
+-- 2.2: estilo Cristal. Todos parten con el una vez; Medianoche, Claro y Sin fondo siguen en Pantalla.
+if stored.uiVersion < 6 then
+  stored.uiVersion = 6
+  stored.hudTheme = 3
+end
+
 -- ---------------------------------------------------------------------------
 -- 11. PANEL EN PANTALLA
 -- ---------------------------------------------------------------------------
@@ -3272,6 +3278,12 @@ HX.PAL = {
     head = hex('#111214', 0.96), well = hex('#111214', 0.98), border = rgbm(1, 1, 1, 0.13), shine = rgbm(1, 1, 1, 0.07),
     brand = hex('#ff6363'),
     green = hex('#59d499'), yellow = hex('#ffc531'), orange = hex('#ff8c4a'), red = hex('#ff6363'), blue = hex('#56c2ff'), purple = hex('#b48cff') },
+  -- 2.2: Cristal. Azul noche translucido, esquinas bien redondeadas, un brillo azul que baja desde arriba
+  -- (como una tarjeta de vidrio iluminada), azul electrico como color de marca y barras con franjas diagonales.
+  [3] = { ink = hex('#ffffff'), soft = hex('#a3acd0'), muted = hex('#6f79a1'), line = hex('#27305a'), bg = hex('#101833', 0.9),
+    head = hex('#172048', 0.94), well = hex('#19224d', 0.96), border = hex('#8aa4ff', 0.22), shine = rgbm(1, 1, 1, 0.12),
+    glow = hex('#3d6bff'), stripe = rgbm(1, 1, 1, 0.22), brand = hex('#5b8cff'), sel = hex('#3d6bff'),
+    green = hex('#4fd18b'), yellow = hex('#ffcc3d'), orange = hex('#ff9a4d'), red = hex('#ff5c6c'), blue = hex('#6f9bff'), purple = hex('#a98bff') },
 }
 HX.c = HX.PAL[1]
 HX.solid = true
@@ -3280,10 +3292,11 @@ function HX.refreshScreen()
   local ok, size = pcall(function () return ac.getUI().windowSize end)
   if ok and size and size.y > 100 then HX.k = math.max(0.7, math.min(3, size.y / 1080)) end
   local theme = cfg.hudTheme
-  if theme ~= 0 and theme ~= 2 then theme = 1 end
+  if theme ~= 0 and theme ~= 2 and theme ~= 3 then theme = 1 end
   HX.theme = theme
   HX.c = HX.PAL[theme]
   HX.solid = theme ~= 0
+  HX.dark = theme >= 2          -- Medianoche y Cristal comparten forma: pozo para el icono, marca de la app, iconos oscuros
 end
 -- HX.es: tamano propio del indicador que se esta dibujando (Pantalla > Acomodar)
 local function hs(v) return v * cfg.hudScale * HX.k * HX.es end
@@ -3332,6 +3345,11 @@ end
 -- Medianoche: titulos en Inter normal (grandes, sin negrita), etiquetas y numeros en monoespaciada.
 function HX.font(bold)
   HX.initFonts()
+  -- Cristal: todo en Inter; titulos, etiquetas y numeros en seminegrita
+  if HX.theme == 3 then
+    if bold == 'serif' or bold == 'num' or bold == true then return HX.F.bold end
+    return HX.F.reg
+  end
   if HX.theme == 2 then
     if bold == 'serif' then return HX.F.reg end
     if bold == 'num' or bold == true then return HX.F.mono end
@@ -3415,10 +3433,17 @@ end
 local function panel(x, y, w, h, alpha, color, radius)
   if not HX.solid then return end
   local a = alpha or 1
-  if HX.theme == 2 then
+  if HX.dark then
     -- Medianoche: sin sombra; un borde de un pixel y una linea de brillo arriba, por dentro
-    local r = radius or hs(14)
+    -- Cristal: lo mismo, mas redondeado y con un brillo azul que se desvanece hacia abajo
+    local r = radius or hs(HX.theme == 3 and 18 or 14)
     ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(color or HX.c.bg, a), r)
+    if HX.theme == 3 then
+      -- capas cada vez mas bajas, todas desde el borde de arriba: juntas forman un degradado
+      for _, k in ipairs({ 1, 0.85, 0.7, 0.57, 0.45, 0.34, 0.25, 0.17 }) do
+        ui.drawRectFilled(vec2(x, y), vec2(x + w, y + math.max(r * 2, h * k)), fade(HX.c.glow, 0.03 * a), r)
+      end
+    end
     local inset = math.min(r, h / 2)
     ui.drawRectFilled(vec2(x + inset, y + 1), vec2(x + w - inset, y + 2), fade(HX.c.shine, a))
     ui.drawRect(vec2(x, y), vec2(x + w, y + h), fade(HX.c.border, a), r, nil, 1)
@@ -3432,17 +3457,33 @@ end
 
 -- Medianoche: el icono va dentro de un pozo oscuro con borde fino, como un icono de app
 function HX.well(x, y, w, h, alpha, color)
-  if HX.theme ~= 2 then return end
+  if not HX.dark then return end
   local a = alpha or 1
   ui.drawRectFilled(vec2(x, y), vec2(x + w, y + h), fade(HX.c.well, a), hs(10))
   ui.drawRect(vec2(x, y), vec2(x + w, y + h), fade(color and fade(color, 0.55) or HX.c.border, a), hs(10), nil, 1)
 end
 
+-- Relleno de una barra. En Cristal lleva franjas diagonales claras encima, recortadas al tamano de la barra.
+function HX.fill(p1, p2, color, r)
+  ui.drawRectFilled(p1, p2, color, r)
+  if HX.theme ~= 3 or p2.x - p1.x < hs(4) then return end
+  local h, step = p2.y - p1.y, hs(7)
+  local wide = step * 0.45
+  ui.pushClipRect(p1, p2)
+  local x = p1.x - h - step
+  while x < p2.x do
+    ui.drawTriangleFilled(vec2(x, p2.y), vec2(x + h, p1.y), vec2(x + h + wide, p1.y), HX.c.stripe)
+    ui.drawTriangleFilled(vec2(x, p2.y), vec2(x + h + wide, p1.y), vec2(x + wide, p2.y), HX.c.stripe)
+    x = x + step
+  end
+  ui.popClipRect()
+end
+
 -- marca de color: una linea fina a la izquierda del texto, en vez de la franja gruesa de la 1.x
 function HX.accent(x, y, h, color, alpha)
   if not HX.solid then return end
-  if HX.theme == 2 then
-    -- Medianoche: una marca mas corta y delgada, centrada
+  if HX.dark then
+    -- Medianoche y Cristal: una marca mas corta y delgada, centrada
     local m = math.max(hs(10), h * 0.28)
     ui.drawRectFilled(vec2(x + hs(7), y + m), vec2(x + hs(9), y + h - m), fade(color, alpha or 1), hs(1))
     return
@@ -3492,7 +3533,7 @@ local function iconPath(kind, height)
   if not imgDir or not file then return nil end
   -- tema oscuro: iconos con trazo claro (carpeta img/oscuro)
   if HX.darkIcons == nil then HX.darkIcons = io.fileExists(imgDir .. 'oscuro/aviso.png') end
-  local base = (HX.theme == 2 and HX.darkIcons) and imgDir .. 'oscuro/' or imgDir
+  local base = (HX.dark and HX.darkIcons) and imgDir .. 'oscuro/' or imgDir
   if height then
     for _, v in ipairs(HX.sizes) do
       if v.h >= height * 0.95 then return base .. v.dir .. file .. '.png' end
@@ -3567,7 +3608,7 @@ local function drawHudMessage(c)
   local h = detail ~= '' and hs(68) or hs(50)
   panel(c.x, c.y, w, h, alpha)
   -- en Medianoche el color va en el borde del pozo del icono
-  if not (big and HX.theme == 2) then HX.accent(c.x, c.y, h, HX.level(level), alpha) end
+  if not (big and HX.dark) then HX.accent(c.x, c.y, h, HX.level(level), alpha) end
   if big then
     local ih = math.min(hs(46), h - hs(8))
     HX.well(c.x + hs(12), c.y + hs(6), hs(76), h - hs(12), alpha, HX.level(level))
@@ -3644,7 +3685,7 @@ local function drawHudStart(c)
   local x1, full, by = c.x + hs(18), w - hs(32), y + h - hs(15)
   local top = limit * 1.25
   ui.drawRectFilled(vec2(x1, by), vec2(x1 + full, by + hs(6)), HX.c.line, hs(3))
-  ui.drawRectFilled(vec2(x1, by), vec2(x1 + full * math.max(0, math.min(1, speed / top)), by + hs(6)), color, hs(3))
+  HX.fill(vec2(x1, by), vec2(x1 + full * math.max(0, math.min(1, speed / top)), by + hs(6)), color, hs(3))
   local mx = x1 + full * (limit / top)
   ui.drawRectFilled(vec2(mx - hs(1), by - hs(3)), vec2(mx + hs(1), by + hs(9)), HX.c.ink)
   local inForm = f and f.phase == 'formation'
@@ -3866,7 +3907,7 @@ local function drawHudPenalty(c)
   if HX.solid then
     ui.drawRectFilled(vec2(c.x + hs(16), c.y + headH), vec2(c.x + w - hs(16), c.y + headH + 1), HX.c.border)
   end
-  if not (ix > 0 and HX.theme == 2) then HX.accent(c.x, c.y, h, color) end
+  if not (ix > 0 and HX.dark) then HX.accent(c.x, c.y, h, color) end
   txt(head, hs(11), c.x + hs(18), c.y + hs(6), soft, true)
   if ix > 0 then
     HX.well(c.x + hs(12), c.y + hs(29), hs(76), hs(52), 1, color)
@@ -3885,7 +3926,7 @@ local function drawHudPenalty(c)
     local full = w - hs(36) - tw(barText, hs(13), true) - hs(10)
     local x1 = c.x + hs(18)
     ui.drawRectFilled(vec2(x1, y + hs(5)), vec2(x1 + full, y + hs(11)), HX.c.line, hs(3))
-    ui.drawRectFilled(vec2(x1, y + hs(5)), vec2(x1 + full * math.max(0, math.min(1, bar)), y + hs(11)), color, hs(3))
+    HX.fill(vec2(x1, y + hs(5)), vec2(x1 + full * math.max(0, math.min(1, bar)), y + hs(11)), color, hs(3))
     txt(barText, hs(13), x1 + full + hs(10), y - hs(1), HX.c.ink, true)
   elseif lapsLeft then
     -- una casilla por cada vuelta que queda para cumplir
@@ -3992,7 +4033,7 @@ local function drawHudStatus(c)
   end
 
   -- Medianoche: la barra parte con el rombo coral de la marca
-  if HX.theme == 2 then table.insert(items, 1, { brand = true }) end
+  if HX.dark then table.insert(items, 1, { brand = true }) end
 
   -- medir y dibujar
   local size, pad, h = hs(HX.solid and 13 or 15), hs(HX.solid and 14 or 12), hs(HX.solid and 34 or 32)
@@ -4058,24 +4099,35 @@ function RS.frame(key, name)
   if not r then return end
   local m = hs(5)
   local sel = RS.sel == key
-  local col = sel and rgbm(1, 0.39, 0.39, 0.95) or rgbm(1, 1, 1, 0.45)
+  local col = sel and hex(RS.tint().accent, 0.95) or rgbm(1, 1, 1, 0.45)
   ui.drawRect(vec2(r.x - m, r.y - m), vec2(r.x + r.w + m, r.y + r.h + m), col, hs(16), nil, sel and 2 or 1)
   HX.initFonts()
   local label = string.upper(tr(name))
   local fs = math.max(10, hs(11))
-  ui.pushDWriteFont(HX.F.mono)
+  ui.pushDWriteFont(HX.font(true))
   ui.dwriteDrawText(label, fs, vec2(px(r.x - m + hs(4)), px(math.max(2, r.y - m - fs - hs(5)))), col)
   ui.popDWriteFont()
 end
 
+-- Colores de las ventanas segun el estilo: Cristal en azul, el resto con el coral de Medianoche
+function RS.tint()
+  if cfg.hudTheme == 3 then
+    return { accent = '#5b8cff', accent2 = '#86a8ff', sel = '#22336e', base = '#141c3a', hover = '#1c2650', active = '#27336a',
+      line = '#2c3870', dim = '#6f79a1', text = '#e8ecff' }
+  end
+  return { accent = '#ff6363', accent2 = '#ff8a8a', sel = '#452324', base = '#111214', hover = '#1b1c1e', active = '#2f3031',
+    line = '#454647', dim = '#6a6b6c', text = '#e6e6e6' }
+end
+
 function RS.title()
   HX.initFonts()
-  if cfg.hudTheme == 2 then
-    -- Medianoche: rombo coral y el nombre en Inter
+  if cfg.hudTheme == 2 or cfg.hudTheme == 3 then
+    -- Medianoche y Cristal: rombo con el color de la marca y el nombre en Inter
     local p = ui.getCursor()
     local cx, cy, r = p.x + 6, p.y + 14, 5
-    ui.drawTriangleFilled(vec2(cx, cy - r), vec2(cx + r, cy), vec2(cx - r, cy), hex('#ff6363'))
-    ui.drawTriangleFilled(vec2(cx - r, cy), vec2(cx + r, cy), vec2(cx, cy + r), hex('#ff6363'))
+    local brand = hex(RS.tint().accent)
+    ui.drawTriangleFilled(vec2(cx, cy - r), vec2(cx + r, cy), vec2(cx - r, cy), brand)
+    ui.drawTriangleFilled(vec2(cx - r, cy), vec2(cx + r, cy), vec2(cx, cy + r), brand)
     ui.setCursor(vec2(p.x + 18, p.y))
     ui.pushDWriteFont(HX.F.bold)
     ui.dwriteText('Steward', 21, rgbm(1, 1, 1, 1))
@@ -4659,9 +4711,10 @@ function W.layoutMap()
   local mw = math.floor(math.min(ui.availableSpaceX(), 520))
   local mh = math.floor(mw * sh / sw)
   local p = ui.getCursor()
-  ui.drawRectFilled(p, vec2(p.x + mw, p.y + mh), hex('#040506'), 8)
-  ui.drawRect(p, vec2(p.x + mw, p.y + mh), hex('#363739'), 8, nil, 1)
+  ui.drawRectFilled(p, vec2(p.x + mw, p.y + mh), hex(cfg.hudTheme == 3 and '#0b1128' or '#040506'), 8)
+  ui.drawRect(p, vec2(p.x + mw, p.y + mh), hex(RS.tint().line), 8, nil, 1)
   local k = mw / sw
+  local tint = RS.tint()
   local guessY = cfg.hudY      -- sin datos del juego todavia: en columna, con el alto aproximado de cada uno
   for _, item in ipairs(FIXED_ORDER) do
     local key = item[1]
@@ -4691,10 +4744,10 @@ function W.layoutMap()
     end
     local sel = RS.sel == key
     local on = cfg['hud' .. key .. 'On'] ~= false
-    ui.drawRectFilled(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and '#452324' or '#1b1c1e', on and 1 or 0.45), 4)
-    ui.drawRect(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and '#ff6363' or '#454647', on and 1 or 0.5), 4, nil, 1)
-    ui.pushDWriteFont(HX.F.mono)
-    ui.dwriteDrawText(string.upper(tr(item[3])), 9, vec2(bx + 4, by + math.max(1, bh / 2 - 6)), hex(on and '#e6e6e6' or '#6a6b6c'))
+    ui.drawRectFilled(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and tint.sel or tint.hover, on and 1 or 0.45), 4)
+    ui.drawRect(vec2(bx, by), vec2(bx + bw, by + bh), hex(sel and tint.accent or tint.line, on and 1 or 0.5), 4, nil, 1)
+    ui.pushDWriteFont(cfg.hudTheme == 3 and HX.F.bold or HX.F.mono)
+    ui.dwriteDrawText(string.upper(tr(item[3])), 9, vec2(bx + 4, by + math.max(1, bh / 2 - 6)), hex(on and tint.text or tint.dim))
     ui.popDWriteFont()
   end
   ui.setCursor(vec2(p.x, p.y + mh + 6))
@@ -4703,8 +4756,8 @@ end
 
 function W.tabScreen(all)
   W.check(tr('Mostrar un ejemplo para acomodarla'), 'hudPlace', tr('Deja a la vista todos los indicadores mientras eliges el lugar y el tamaño.'))
-  W.radio(tr('Estilo'), 'hudTheme', { tr('Sin fondo'), tr('Claro'), tr('Medianoche') }, 0,
-    tr('Medianoche: tarjetas casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'), true)
+  W.radio(tr('Estilo'), 'hudTheme', { tr('Sin fondo'), tr('Claro'), tr('Medianoche'), tr('Cristal') }, 0,
+    tr('Cristal: tarjetas azul noche translúcidas con un brillo azul. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'), true)
   W.slider(tr('Tamaño'), 'hudScale', 0.6, 2.5, '%.1f', tr('Tamaño de todos los indicadores juntos.'), true)
 
   W.section(tr('Acomodar los indicadores'))
@@ -4836,19 +4889,22 @@ function W.draw(dt)
   end)
 end
 
--- Colores de pestanas, casillas, botones y barras (2.1, Medianoche): grises casi negros y el coral de la marca
+-- Colores de pestanas, casillas, botones y barras: los del estilo elegido (RS.tint), con el color de la marca
 -- solo en lo elegido. Valen para las tres ventanas (Steward, clasificacion y ajustes).
 -- Si esta version del juego no conoce alguno de estos nombres, se salta.
-RS.STYLE = {
-  { 'Tab', '#111214' }, { 'TabHovered', '#1b1c1e' }, { 'TabActive', '#452324' },
-  { 'CheckMark', '#ff6363' }, { 'SliderGrab', '#ff6363' }, { 'SliderGrabActive', '#ff8a8a' },
-  { 'FrameBg', '#111214' }, { 'FrameBgHovered', '#1b1c1e' }, { 'FrameBgActive', '#2f3031' },
-  { 'Button', '#1b1c1e' }, { 'ButtonHovered', '#2f3031' }, { 'ButtonActive', '#452324' },
-  { 'Header', '#1b1c1e' }, { 'HeaderHovered', '#2f3031' }, { 'HeaderActive', '#452324' },
-}
+function RS.styleList()
+  local t = RS.tint()
+  return {
+    { 'Tab', t.base }, { 'TabHovered', t.hover }, { 'TabActive', t.sel },
+    { 'CheckMark', t.accent }, { 'SliderGrab', t.accent }, { 'SliderGrabActive', t.accent2 },
+    { 'FrameBg', t.base }, { 'FrameBgHovered', t.hover }, { 'FrameBgActive', t.active },
+    { 'Button', t.hover }, { 'ButtonHovered', t.active }, { 'ButtonActive', t.sel },
+    { 'Header', t.hover }, { 'HeaderHovered', t.active }, { 'HeaderActive', t.sel },
+  }
+end
 function RS.pushStyle()
   local n = 0
-  for _, st in ipairs(RS.STYLE) do
+  for _, st in ipairs(RS.styleList()) do
     local id = ui.StyleColor and ui.StyleColor[st[1]]
     if id ~= nil and pcall(ui.pushStyleColor, id, hex(st[2])) then n = n + 1 end
   end
@@ -5254,7 +5310,8 @@ EN['Estilo'] = 'Style'
 EN['Sin fondo'] = 'No background'
 EN['Claro'] = 'Light'
 EN['Medianoche'] = 'Midnight'
-EN['Medianoche: tarjetas casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Midnight: near-black cards with a thin edge. Light: paper cards. No background: only icons and outlined text, straight over the track.'
+EN['Cristal'] = 'Glass'
+EN['Cristal: tarjetas azul noche translúcidas con un brillo azul. Medianoche: casi negras con borde fino. Claro: tarjetas de papel. Sin fondo: solo íconos y letras con contorno, directo sobre la pista.'] = 'Glass: translucent night-blue cards with a blue glow. Midnight: near-black with a thin edge. Light: paper cards. No background: only icons and outlined text, straight over the track.'
 EN['Tamaño de todos los indicadores juntos.'] = 'Size of all the indicators together.'
 EN['Acomodar los indicadores'] = 'Arrange the indicators'
 EN['Con las ventanas sueltas, cada indicador se mueve arrastrando su ventana. Su tamaño y si se muestra se eligen igual aquí abajo.'] = 'With separate windows, you move each indicator by dragging its window. Its size and whether it shows are still chosen below.'

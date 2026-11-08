@@ -39,12 +39,12 @@ python3 test/run_online.py apps/lua/Steward/Steward.lua
 python3 test/run_server.py servidor/comisario_servidor.lua
 ```
 
-En la versión 2.1.0 dan: 500 traducciones sin problemas, 216/216, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
+En la versión 2.2.0 dan: 501 traducciones sin problemas, 218/218, 21/21 y 42/42. GitHub Actions corre lo mismo en cada push (`.github/workflows/pruebas.yml`). Si agregas o cambias una regla, agrega una prueba que falle sin tu cambio.
 
 Para revisar el diseño sin abrir el juego:
 
 - `python3 test/preview_settings.py salida.png es` dibuja la ventana de ajustes (`en` para inglés).
-- `python3 test/preview_steward.py salida.png es claro` dibuja los indicadores (`oscuro` o `sinfondo` para los otros estilos).
+- `python3 test/preview_steward.py salida.png es cristal` dibuja los indicadores (`medianoche`, `claro` o `sinfondo` para los otros estilos).
 
 ## Reglas del código
 
@@ -54,7 +54,7 @@ Para revisar el diseño sin abrir el juego:
 - Los ajustes nuevos van en `DEFAULTS` con un valor que no cambie el comportamiento anterior. Si son parte del reglamento, también van en `RULE_KEYS`, y hay que subir el número de la clave `comisario:reglas:N` (hoy es 8), porque cambia el formato del mensaje online.
 - Las claves online siguen llamándose `comisario:*` a propósito, para no romper la compatibilidad con el script del servidor ni con versiones anteriores. No las renombres.
 - Los mensajes online viajan por el chat del servidor: menos de 175 bytes y al menos 200 ms entre uno y otro.
-- Los indicadores tienen tres estilos (`hudTheme`: 0 sin fondo, 1 claro, 2 Medianoche, que desde la 2.1 reemplaza al oscuro y es el de fábrica) con sus colores en `HX.PAL`. En claro los títulos van en Fraunces; en Medianoche, títulos en Inter y números y etiquetas en Geist Mono (`HX.font`). Siempre en tipo oración (`HX.sentence`).
+- Los indicadores tienen cuatro estilos (`hudTheme`: 0 sin fondo, 1 claro, 2 Medianoche, 3 Cristal, el de fábrica desde la 2.2) con sus colores en `HX.PAL`. `HX.dark` agrupa Medianoche y Cristal (pozo del icono, rombo de la marca, íconos oscuros). En claro los títulos van en Fraunces; en Medianoche, títulos en Inter y números y etiquetas en Geist Mono; en Cristal, todo en Inter (`HX.font`). Las barras con relleno pasan por `HX.fill` (franjas en Cristal). Los colores de las ventanas salen de `RS.tint()`. Siempre en tipo oración (`HX.sentence`).
 - Cada indicador se acomoda por separado (`FIXED_ORDER`: Status, Start, Msg, Pen). Sus ajustes son `hud<Clave>X`, `Y`, `S` (tamaño) y `On`; `hudFree` elige entre columna y libre. Para dibujar con el tamaño propio se usa `HX.es` dentro de `hs()`. El mapa para arrastrarlos está en `W.layoutMap`.
 - `RS` se declara arriba del archivo (junto a `RP`), así que se puede usar desde cualquier sección.
 - Los ajustes de quien venía de Comisario se copian una sola vez desde `Comisario.ini` (`RS.migrate`).

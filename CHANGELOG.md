@@ -1,5 +1,11 @@
 # Cambios
 
+## 2.2.0 — Estilo Cristal
+- Estilo nuevo **Cristal**, de fábrica: tarjetas azul noche translúcidas con esquinas bien redondeadas, un brillo azul que baja desde arriba como vidrio iluminado, borde fino azulado, todo en Inter, el rombo de la marca en azul eléctrico y barras de progreso con franjas diagonales.
+- Las ventanas (Steward, clasificación y ajustes) y el mapa para acomodar los indicadores toman los colores del estilo: azul con Cristal, coral con los demás.
+- Medianoche, Claro y Sin fondo siguen disponibles en Pantalla > Estilo. Al actualizar, todos pasan una vez a Cristal.
+- Sin cambios en las reglas ni en el script del servidor (sigue en 1.14).
+
 ## 2.1.0 — Medianoche e indicadores a tu gusto
 - Corregido: pasar por un piano grueso con un auto bajo y duro (por ejemplo un F1 2006) marcaba "golpe contra el muro". El salto vertical del auto se sumaba como si fuera un golpe. Ahora solo cuenta la velocidad horizontal, el auto tiene que terminar más lento de lo que entró y, si alguna rueda va sobre un piano, se exige un tirón mayor. Lo descartado queda anotado en el registro, con lo que habría medido la versión anterior. Probado en Spa con los F1 2006 de la IA: tres pisadas de piano que antes contaban como muro (15 a 19 km/h por el salto) ahora se descartan.
 - Cada indicador (estado, largada, aviso y sanción) se acomoda por separado en Pantalla > Acomodar los indicadores: en columna como antes, o libre, cada uno en su lugar. Un mapa de la pantalla permite arrastrarlos con el mouse y en el juego se mueven al mismo tiempo. Cada uno se puede ocultar y tiene su propio tamaño.

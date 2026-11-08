@@ -235,6 +235,8 @@ local known = {
   pushStyleColor = 1, popStyleColor = 1, setCursorX = 1,
   -- 2.0: titulo de la ventana con la letra de la marca
   dwriteText = 1,
+  -- 2.2: franjas de las barras del estilo Cristal (uso comprobado en acc-lua-sdk/common/ac_ui.lua)
+  pushClipRect = 1, popClipRect = 1,
 }
 -- 2.1: mapa para acomodar los indicadores (uso comprobado en las apps oficiales de CSP: AISplineEditor,
 -- WebBrowser, android_auto). T.drag = { 'Msg', vec2(dx, dy) } simula arrastrar el recuadro de ese indicador.

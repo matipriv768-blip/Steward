@@ -1065,6 +1065,25 @@ scenario('acomodar: arrastrar un recuadro en el mapa de los ajustes mueve ese in
     and T.cfg.hudStatusY > 20 and not logText():find('ERROR')
 ''')
 
+# ---------------------------------------------------------------- 2.2: estilo Cristal
+scenario('cristal: las barras llevan franjas recortadas al tamano de la barra y la barra de estado parte con la marca', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudTheme = 3
+  T.calls.pushClipRect = 0; T.calls.popClipRect = 0
+  script.fullscreenUI(0.016)
+  local hs3 = hudScreen()
+  local clips, pops = T.calls.pushClipRect or 0, T.calls.popClipRect or 0
+  T.cfg.hudTheme = 2; T.calls.pushClipRect = 0
+  script.fullscreenUI(0.016)
+  return clips >= 1 and clips == pops and (T.calls.pushClipRect or 0) == 0 and hs3:find('PRACTICA') ~= nil
+    and not logText():find('ERROR')
+''')
+
+scenario('cristal: un estilo que no existe vuelve al claro sin errores', '''
+  T.cfg.hudFixed = true; T.cfg.hudPlace = true; T.cfg.hudTheme = 7
+  script.fullscreenUI(0.016)
+  return hudScreen():find('PRACTICA') ~= nil and not logText():find('ERROR')
+''')
+
 scenario('los reglamentos anteriores vuelven al modo clasico despues de usar Real Penalty', '''
   preset('Real Penalty'); preset('Sanciones reales (FIA)')
   local c = place(0, 0, 150)
@@ -1465,8 +1484,8 @@ scenario('sin fondo, en un juego que no trae el contorno: se dibuja a mano con o
   return textsBg > 5 and T.calls.dwriteDrawText == textsBg * 9 and not logText():find('ERROR')
 ''', pre='NO_OUTLINE = true')
 
-scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija (desde la 2.1, con el estilo Medianoche) y se cierran las ventanas sueltas', '''
-  local first = T.cfg.hudFixed == true and T.cfg.hudTheme == 2 and T.cfg.uiVersion == 5 and T.cfg.hudY == 22
+scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija (desde la 2.2, con el estilo Cristal) y se cierran las ventanas sueltas', '''
+  local first = T.cfg.hudFixed == true and T.cfg.hudTheme == 3 and T.cfg.uiVersion == 6 and T.cfg.hudY == 22
     and T.windows.hud_msg == false and T.windows.hud_pen == false and T.windows.hud_status == false and T.windows.hud_start == false
   return first
 ''', pre='FRESH_INSTALL = true; STORED = { hudBg = true, hudFixed = false }')
@@ -1474,11 +1493,11 @@ scenario('al actualizar desde antes de la 1.4 se aplica una vez la interfaz fija
 
 # ---------------------------------------------------------------- 1.5: posicion, nitidez, idioma y ajustes
 scenario('al actualizar desde la 1.4, la columna baja del 10% al 22% para no tapar el espejo virtual', '''
-  return T.cfg.hudY == 22 and T.cfg.uiVersion == 5 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
+  return T.cfg.hudY == 22 and T.cfg.uiVersion == 6 and T.cfg.hudX == 50 and T.cfg.hudFixed == true
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 10, hudBg = false, hudFixed = true }')
 
 scenario('al actualizar, quien ya habia elegido otra altura la conserva', '''
-  return T.cfg.hudY == 40 and T.cfg.uiVersion == 5
+  return T.cfg.hudY == 40 and T.cfg.uiVersion == 6
 ''', pre='FRESH_INSTALL = true; STORED = { uiVersion = 2, hudY = 40, hudBg = false, hudFixed = true }')
 
 scenario('nitidez: los textos y los iconos se dibujan siempre en pixeles enteros, con cualquier tamano', '''
@@ -1568,7 +1587,7 @@ scenario('tipo oracion: respeta tildes, siglas y palabras con numeros', '''
 scenario('ajustes de Comisario: la primera vez se copian a Steward, una sola vez', '''
   run(6)
   return T.cfg.migrated == true and T.cfg.hudY == 40 and T.cfg.adminKey == 'clave' and T.cfg.hudIcons == false
-    and T.cfg.hudTheme == 2 and logText():find('Ajustes de Comisario copiados') ~= nil
+    and T.cfg.hudTheme == 3 and logText():find('Ajustes de Comisario copiados') ~= nil
 ''', pre="FRESH_INSTALL = true; STORED = { uiVersion = 3 }; PRELOAD = { ['C:/logs/lua/app/Comisario.ini'] = '[__STORAGE]\\nhudY=40\\nadminKey=\"clave\"\\nhudIcons=0\\nhudTheme=2\\nnoExiste=5\\n' }")
 
 scenario('si la app Comisario sigue instalada, se avisa en pantalla; si es el reemplazo vacio, no', '''
