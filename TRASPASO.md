@@ -22,7 +22,7 @@ Steward es una app Lua para Assetto Corsa con Custom Shaders Patch (CSP), hecha 
 | Script del servidor | 1.14, sin cambios desde la 2.0. Vive en su gist. |
 | Pruebas | 501 traducciones, 218/218, 21/21 y 42/42. GitHub Actions las pasa en verde. |
 | Sitio web | https://matipriv768-blip.github.io/Steward/ (sale de `docs/`). Todavía muestra el diseño de la 2.0. |
-| Respaldo | Tag `respaldo-2026-11-10` en GitHub, más un zip con el historial completo (ver 9). |
+| Respaldo | Rama `respaldo-2026-11-10` en GitHub, más un zip con el historial completo (ver 11). |
 
 ## 2. Cómo trabajar con Matías
 
@@ -182,8 +182,8 @@ python3 herramientas/empaquetar.py                          # crea Steward-<vers
 
 ## 11. Respaldo del 10 de noviembre de 2026
 
-- En GitHub: el tag `respaldo-2026-11-10` apunta al estado exacto de este traspaso. Para volver ahí: `git checkout respaldo-2026-11-10`.
+- En GitHub: la rama `respaldo-2026-11-10` guarda el estado exacto de este traspaso. Para volver ahí: `git checkout respaldo-2026-11-10`. Es una rama y no un tag porque desde la sesión en la nube GitHub no dejó subir tags; no la borres ni le hagas commits.
 - En su PC: `C:\Users\Cerix\Documents\Assetto Corsa\Steward respaldo 2026-11-10\`. Ahí están:
   - `Steward-respaldo-2026-11-10.zip`, con el repo completo, su historial (`steward.bundle`, se restaura con `git clone steward.bundle Steward`) y el zip de la 2.2.0;
-  - una copia de la app 2.1.0 que estaba instalada;
-  - una copia de sus ajustes (`Steward.ini`).
+  - una copia de sus ajustes (`Steward.ini`), para devolverla a `cfg\extension\state\lua\app\` si se pierden.
+- La 2.1.0 que tiene instalada es el commit `e792783` del historial.
