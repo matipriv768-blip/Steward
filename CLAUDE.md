@@ -2,6 +2,8 @@
 
 Steward (antes se llamaba Comisario) es una app Lua para Assetto Corsa con Custom Shaders Patch (CSP). Hace de comisario de carrera: límites de pista, contactos, puntos de incidente, banderas, largadas parada y lanzada, y sanciones reales para el piloto y para la IA, offline y online. El autor es Matías.
 
+Antes de empezar, lee también `TRASPASO.md`: estado actual, decisiones del reglamento que pidió Matías, pendientes y trampas conocidas.
+
 ## Cómo trabajar con Matías
 
 - Escríbele en español de Chile, claro y directo. No tiene experiencia programando: cuando tenga que hacer algo él (instalar, probar en el juego, subir una versión), dale pasos numerados, en el orden en que los va a hacer, sin dar nada por sabido.
